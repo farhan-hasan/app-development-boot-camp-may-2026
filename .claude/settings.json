@@ -10,7 +10,9 @@
       "Bash(git remote *)",
       "Bash(git branch *)",
       "Bash(git fetch *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git commit -m 'feat: Phase 1 - project scaffold, architecture, and config layer *)"
     ],
     "additionalDirectories": [
       "/Users/farhanhasan/Development/hisabi/lib"
