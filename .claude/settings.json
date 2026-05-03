@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter --version)",
+      "Bash(flutter create *)",
+      "Bash(flutter pub *)",
+      "Bash(gh auth *)",
+      "Bash(git --version)",
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git branch *)",
+      "Bash(git fetch *)",
+      "Bash(git add *)"
+    ],
+    "additionalDirectories": [
+      "/Users/farhanhasan/Development/hisabi/lib"
+    ]
+  }
+}
