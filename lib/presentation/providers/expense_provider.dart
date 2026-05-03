@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/material.dart';
 import 'package:hisabi/data/repositories/expense_repository_impl.dart';
 import 'package:hisabi/domain/entities/expense.dart';
 import 'package:hisabi/domain/repositories/expense_repository.dart';
@@ -10,7 +10,7 @@ import 'package:hisabi/domain/repositories/expense_repository.dart';
 part 'expense_provider.g.dart';
 
 // ---------------------------------------------------------------------------
-// Infrastructure providers
+// Infrastructure
 // ---------------------------------------------------------------------------
 
 final firestoreProvider = Provider<FirebaseFirestore>((_) => FirebaseFirestore.instance);
@@ -20,7 +20,7 @@ final expenseRepositoryProvider = Provider<ExpenseRepository>((ref) {
 });
 
 // ---------------------------------------------------------------------------
-// UI state providers
+// UI state
 // ---------------------------------------------------------------------------
 
 final selectedMonthProvider = StateProvider<DateTime>((_) {
@@ -31,7 +31,7 @@ final selectedMonthProvider = StateProvider<DateTime>((_) {
 final searchQueryProvider = StateProvider<String>((_) => '');
 
 // ---------------------------------------------------------------------------
-// Expense list – AsyncNotifier (code-gen)
+// Expense list AsyncNotifier (code-gen)
 // ---------------------------------------------------------------------------
 
 @riverpod
@@ -55,7 +55,7 @@ class ExpenseList extends _$ExpenseList {
 }
 
 // ---------------------------------------------------------------------------
-// Monthly total – code-gen FutureProvider
+// Derived FutureProviders
 // ---------------------------------------------------------------------------
 
 @riverpod
@@ -64,10 +64,6 @@ Future<double> monthlyTotal(Ref ref) async {
   final repo = ref.watch(expenseRepositoryProvider);
   return repo.getTotalForMonth(month);
 }
-
-// ---------------------------------------------------------------------------
-// Today's total – derived from the expense list
-// ---------------------------------------------------------------------------
 
 @riverpod
 Future<double> todayTotal(Ref ref) async {
@@ -95,9 +91,9 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    final value = prefs.getString(_key);
-    if (value == 'light') state = ThemeMode.light;
-    if (value == 'dark') state = ThemeMode.dark;
+    final v = prefs.getString(_key);
+    if (v == 'light') state = ThemeMode.light;
+    if (v == 'dark') state = ThemeMode.dark;
   }
 
   Future<void> toggle() async {
@@ -105,5 +101,59 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
     state = next;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_key, next == ThemeMode.dark ? 'dark' : 'light');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Currency – persisted via SharedPreferences
+// ---------------------------------------------------------------------------
+
+final currencyProvider = StateNotifierProvider<CurrencyNotifier, String>((ref) {
+  return CurrencyNotifier();
+});
+
+class CurrencyNotifier extends StateNotifier<String> {
+  CurrencyNotifier() : super('৳') {
+    _load();
+  }
+
+  static const _key = 'currency';
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    state = prefs.getString(_key) ?? '৳';
+  }
+
+  Future<void> setCurrency(String symbol) async {
+    state = symbol;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_key, symbol);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Onboarding completed – persisted via SharedPreferences
+// ---------------------------------------------------------------------------
+
+final onboardingCompletedProvider = StateNotifierProvider<OnboardingNotifier, bool>((ref) {
+  return OnboardingNotifier();
+});
+
+class OnboardingNotifier extends StateNotifier<bool> {
+  OnboardingNotifier([bool initial = false]) : super(initial) {
+    if (!initial) _load();
+  }
+
+  static const _key = 'onboarding_completed';
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    state = prefs.getBool(_key) ?? false;
+  }
+
+  Future<void> complete() async {
+    state = true;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_key, true);
   }
 }

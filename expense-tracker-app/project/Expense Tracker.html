@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Expense Tracker App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<meta name="ext-resource-dependency" content="android-frame.jsx" data-resource-id="androidFrame" />
+<meta name="ext-resource-dependency" content="tweaks-panel.jsx" data-resource-id="tweaksPanel" />
+<template id="__bundler_thumbnail" data-bg-color="#0f0f12">
+  <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+    <!-- Phone shape -->
+    <rect x="140" y="30" width="120" height="240" rx="18" fill="#1e293b" stroke="rgba(255,255,255,0.12)" stroke-width="3"/>
+    <!-- Status bar -->
+    <rect x="148" y="46" width="104" height="8" rx="2" fill="#334155"/>
+    <!-- Teal card -->
+    <rect x="152" y="64" width="68" height="44" rx="8" fill="#0D9488"/>
+    <rect x="156" y="70" width="28" height="5" rx="2" fill="rgba(255,255,255,0.6)"/>
+    <rect x="156" y="80" width="44" height="10" rx="2" fill="white"/>
+    <!-- Orange card -->
+    <rect x="228" y="64" width="44" height="44" rx="8" fill="#F97316"/>
+    <rect x="232" y="70" width="20" height="5" rx="2" fill="rgba(255,255,255,0.6)"/>
+    <rect x="232" y="80" width="32" height="10" rx="2" fill="white"/>
+    <!-- Transaction rows -->
+    <rect x="152" y="120" width="88" height="14" rx="4" fill="#1e293b"/>
+    <circle cx="164" cy="127" r="6" fill="#F59E0B"/>
+    <rect x="174" y="123" width="40" height="4" rx="2" fill="#334155"/>
+    <rect x="152" y="140" width="88" height="14" rx="4" fill="#1e293b"/>
+    <circle cx="164" cy="147" r="6" fill="#3B82F6"/>
+    <rect x="174" y="143" width="35" height="4" rx="2" fill="#334155"/>
+    <rect x="152" y="160" width="88" height="14" rx="4" fill="#1e293b"/>
+    <circle cx="164" cy="167" r="6" fill="#EC4899"/>
+    <rect x="174" y="163" width="42" height="4" rx="2" fill="#334155"/>
+    <!-- FAB -->
+    <circle cx="248" cy="224" r="14" fill="#0D9488"/>
+    <rect x="244" y="220" width="8" height="2" rx="1" fill="white"/>
+    <rect x="247" y="217" width="2" height="8" rx="1" fill="white"/>
+    <!-- Bottom nav -->
+    <rect x="140" y="244" width="120" height="26" rx="0" fill="#1e293b"/>
+    <rect x="140" y="244" width="120" height="1" fill="#334155"/>
+  </svg>
+</template>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="android-frame.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<!-- ext-resource-dependency refs handled via meta tags above -->
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; background: #0f0f12; font-family: 'Inter', sans-serif; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; }
+  #root { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideInRight { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes slideInUp { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes shimmer { 0% { background-position: -200px 0; } 100% { background-position: 200px 0; } }
+  @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes donutDraw { from { stroke-dashoffset: 440; } to { } }
+  @keyframes scaleIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+  @keyframes toastIn { from { transform: translateY(80px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @keyframes toastOut { from { transform: translateY(0); opacity: 1; } to { transform: translateY(80px); opacity: 0; } }
+  @keyframes swipeReveal { from { transform: translateX(0); } to { transform: translateX(-80px); } }
+  @keyframes itemRemove { to { height: 0; opacity: 0; padding: 0; margin: 0; overflow: hidden; } }
+  @keyframes pulseRefresh { 0%,100%{opacity:0.6} 50%{opacity:1} }
+  @keyframes slideInLeft { from { opacity: 0; transform: translateX(-100%); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes sheetIn { from { transform: translateY(100%); } to { transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "darkMode": true,
+  "currency": "$",
+  "accentColor": "#0D9488"
+}/*EDITMODE-END*/;
+
+// ─── DESIGN TOKENS ──────────────────────────────────────────────────────────
+const theme = (dark, accent) => ({
+  primary: accent || '#0D9488',
+  primaryLight: '#14B8A6',
+  primaryDark: '#0F766E',
+  expense: '#F97316',
+  success: '#22C55E',
+  danger: '#EF4444',
+  bg: dark ? '#0F172A' : '#FAFAFA',
+  card: dark ? '#1E293B' : '#FFFFFF',
+  cardAlt: dark ? '#162032' : '#F1F5F9',
+  text: dark ? '#F8FAFC' : '#111827',
+  textSec: dark ? '#94A3B8' : '#6B7280',
+  border: dark ? '#334155' : '#E5E7EB',
+  navBg: dark ? '#1E293B' : '#FFFFFF',
+  inputBg: dark ? '#0F172A' : '#F9FAFB',
+  shadow: dark ? '0 4px 24px rgba(0,0,0,0.4)' : '0 4px 24px rgba(0,0,0,0.08)',
+});
+
+const CAT_COLORS = {
+  Food: '#F59E0B',
+  Transport: '#3B82F6',
+  Shopping: '#EC4899',
+  Bills: '#8B5CF6',
+  Entertainment: '#F97316',
+  Health: '#EF4444',
+  Others: '#6B7280',
+};
+
+const CAT_ICONS = {
+  Food: '🍔',
+  Transport: '🚗',
+  Shopping: '🛍️',
+  Bills: '💡',
+  Entertainment: '🎬',
+  Health: '🏥',
+  Others: '📦',
+};
+
+// ─── SAMPLE DATA ─────────────────────────────────────────────────────────────
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+const generateId = () => Math.random().toString(36).slice(2);
+
+const INITIAL_DATA = {
+  '2026-5': [
+    { id: generateId(), title: 'Lunch at Dhanmondi', category: 'Food', amount: 320, date: '2026-05-03', note: 'Biriyani + drinks' },
+    { id: generateId(), title: 'Uber to office', category: 'Transport', amount: 180, date: '2026-05-03', note: '' },
+    { id: generateId(), title: 'Netflix subscription', category: 'Entertainment', amount: 650, date: '2026-05-02', note: 'Monthly plan' },
+    { id: generateId(), title: 'Grocery shopping', category: 'Shopping', amount: 1240, date: '2026-05-02', note: 'Weekly groceries' },
+    { id: generateId(), title: 'Electricity bill', category: 'Bills', amount: 2100, date: '2026-05-01', note: 'April bill' },
+    { id: generateId(), title: 'Paracetamol', category: 'Health', amount: 120, date: '2026-05-01', note: '' },
+    { id: generateId(), title: 'Breakfast', category: 'Food', amount: 150, date: '2026-05-03', note: 'Paratha + egg' },
+    { id: generateId(), title: 'Rickshaw', category: 'Transport', amount: 60, date: '2026-05-02', note: '' },
+    { id: generateId(), title: 'Shampoo', category: 'Shopping', amount: 380, date: '2026-05-01', note: '' },
+    { id: generateId(), title: 'Internet bill', category: 'Bills', amount: 750, date: '2026-04-30', note: 'Monthly' },
+  ],
+  '2026-4': [
+    { id: generateId(), title: 'Dinner out', category: 'Food', amount: 850, date: '2026-04-28', note: '' },
+    { id: generateId(), title: 'CNG fare', category: 'Transport', amount: 200, date: '2026-04-27', note: '' },
+    { id: generateId(), title: 'Amazon order', category: 'Shopping', amount: 3200, date: '2026-04-25', note: 'Books' },
+    { id: generateId(), title: 'Gas bill', category: 'Bills', amount: 900, date: '2026-04-20', note: '' },
+    { id: generateId(), title: 'Doctor visit', category: 'Health', amount: 1500, date: '2026-04-18', note: 'Consultation' },
+    { id: generateId(), title: 'Cinema tickets', category: 'Entertainment', amount: 600, date: '2026-04-15', note: '2 tickets' },
+    { id: generateId(), title: 'Stationary', category: 'Others', amount: 340, date: '2026-04-10', note: '' },
+  ],
+};
+
+// ─── ICONS (SVG inline) ──────────────────────────────────────────────────────
+const Icon = ({ name, size = 20, color = 'currentColor', style = {} }) => {
+  const icons = {
+    home: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><path d="M3 9L12 2l9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>,
+    analytics: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg>,
+    plus: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" style={style}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+    back: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><polyline points="15,18 9,12 15,6"/></svg>,
+    settings: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>,
+    chevLeft: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={style}><polyline points="15,18 9,12 15,6"/></svg>,
+    chevRight: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={style}><polyline points="9,18 15,12 9,6"/></svg>,
+    calendar: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+    search: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+    x: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" style={style}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+    trash: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>,
+    check: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={style}><polyline points="20,6 9,17 4,12"/></svg>,
+    refresh: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><polyline points="23,4 23,10 17,10"/><polyline points="1,20 1,14 7,14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>,
+    trendUp: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><polyline points="23,6 13.5,15.5 8.5,10.5 1,18"/><polyline points="17,6 23,6 23,12"/></svg>,
+    trendDown: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><polyline points="23,18 13.5,8.5 8.5,13.5 1,6"/><polyline points="17,18 23,18 23,12"/></svg>,
+    edit: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+    moon: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>,
+    sun: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
+    globe: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>,
+    bell: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>,
+    shield: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+    info: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
+  };
+  return icons[name] || null;
+};
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+const fmt = (n, currency) => `${currency}${n.toLocaleString()}`;
+
+const groupByDate = (txns) => {
+  const today = new Date('2026-05-03');
+  const yesterday = new Date('2026-05-02');
+  const groups = {};
+  txns.forEach(t => {
+    const d = new Date(t.date);
+    let label;
+    if (d.toDateString() === today.toDateString()) label = 'Today';
+    else if (d.toDateString() === yesterday.toDateString()) label = 'Yesterday';
+    else label = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    if (!groups[label]) groups[label] = [];
+    groups[label].push(t);
+  });
+  return groups;
+};
+
+const getTodayTotal = (txns, currency) => {
+  const today = '2026-05-03';
+  return txns.filter(t => t.date === today).reduce((s, t) => s + t.amount, 0);
+};
+
+// ─── EMPTY STATE ─────────────────────────────────────────────────────────────
+const EmptyState = ({ t }) => (
+  <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'48px 24px', gap:16 }}>
+    <div style={{ animation:'float 3s ease-in-out infinite', fontSize:64 }}>💸</div>
+    <div style={{ fontSize:17, fontWeight:600, color:t.text }}>No expenses yet</div>
+    <div style={{ fontSize:14, color:t.textSec, textAlign:'center', lineHeight:1.5 }}>Tap + to add your first expense</div>
+  </div>
+);
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+const Toast = ({ message, visible }) => (
+  <div style={{
+    position:'absolute', bottom:90, left:'50%', transform:'translateX(-50%)',
+    background:'#111827', color:'#fff', padding:'12px 20px', borderRadius:12,
+    fontSize:13, fontWeight:500, whiteSpace:'nowrap', zIndex:999,
+    display:'flex', alignItems:'center', gap:8,
+    animation: visible ? 'toastIn 0.3s ease forwards' : 'toastOut 0.3s ease forwards',
+    boxShadow:'0 8px 32px rgba(0,0,0,0.3)',
+    pointerEvents:'none',
+  }}>
+    <div style={{ width:18, height:18, background:'#22C55E', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <Icon name="check" size={11} color="#fff" />
+    </div>
+    {message}
+  </div>
+);
+
+// ─── EXPENSE DETAIL BOTTOM SHEET ─────────────────────────────────────────────
+const ExpenseDetailSheet = ({ txn, t, currency, onClose, onEdit, onDelete }) => {
+  const [confirmDelete, setConfirmDelete] = React.useState(false);
+  const catColor = CAT_COLORS[txn.category];
+  const displayDate = new Date(txn.date).toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+
+  const handleDelete = () => {
+    if (!confirmDelete) { setConfirmDelete(true); return; }
+    onDelete(txn.id);
+    onClose();
+  };
+
+  return (
+    <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.55)', display:'flex', alignItems:'flex-end', zIndex:200, animation:'fadeIn 0.2s ease' }}
+      onClick={onClose}>
+      <div style={{ width:'100%', background:t.card, borderRadius:'28px 28px 0 0', animation:'sheetIn 0.32s cubic-bezier(0.34,1.2,0.64,1)', overflow:'hidden' }}
+        onClick={e => e.stopPropagation()}>
+
+        {/* Drag handle */}
+        <div style={{ display:'flex', justifyContent:'center', paddingTop:12, paddingBottom:4 }}>
+          <div style={{ width:36, height:4, borderRadius:2, background:t.border }} />
+        </div>
+
+        {/* Category hero */}
+        <div style={{ padding:'20px 24px 0', display:'flex', flexDirection:'column', alignItems:'center', gap:12 }}>
+          <div style={{
+            width:72, height:72, borderRadius:22, fontSize:34,
+            background: catColor + '22', display:'flex', alignItems:'center', justifyContent:'center',
+            border:`2px solid ${catColor}33`,
+          }}>{CAT_ICONS[txn.category]}</div>
+          <div style={{ fontSize:28, fontWeight:800, color:t.expense, letterSpacing:'-1px' }}>
+            -{fmt(txn.amount, currency)}
+          </div>
+          <div style={{ fontSize:18, fontWeight:700, color:t.text, textAlign:'center' }}>{txn.title}</div>
+          <div style={{
+            display:'inline-flex', alignItems:'center', gap:6, padding:'5px 14px',
+            borderRadius:20, background:catColor + '18', border:`1px solid ${catColor}33`,
+          }}>
+            <div style={{ width:7, height:7, borderRadius:'50%', background:catColor }} />
+            <span style={{ fontSize:13, fontWeight:600, color:catColor }}>{txn.category}</span>
+          </div>
+        </div>
+
+        {/* Details rows */}
+        <div style={{ padding:'24px 24px 0', display:'flex', flexDirection:'column', gap:0 }}>
+          {/* Date row */}
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 0', borderBottom:`1px solid ${t.border}` }}>
+            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+              <div style={{ width:36, height:36, borderRadius:10, background:t.cardAlt, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <Icon name="calendar" size={16} color={t.textSec} />
+              </div>
+              <span style={{ fontSize:14, color:t.textSec, fontWeight:500 }}>Date</span>
+            </div>
+            <span style={{ fontSize:14, fontWeight:600, color:t.text }}>{displayDate}</span>
+          </div>
+
+          {/* Amount row */}
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 0', borderBottom: txn.note ? `1px solid ${t.border}` : 'none' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+              <div style={{ width:36, height:36, borderRadius:10, background:t.cardAlt, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <span style={{ fontSize:14, fontWeight:800, color:t.textSec }}>{currency}</span>
+              </div>
+              <span style={{ fontSize:14, color:t.textSec, fontWeight:500 }}>Amount</span>
+            </div>
+            <span style={{ fontSize:14, fontWeight:700, color:t.expense }}>{fmt(txn.amount, currency)}</span>
+          </div>
+
+          {/* Note row */}
+          {txn.note ? (
+            <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', padding:'14px 0', gap:12 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
+                <div style={{ width:36, height:36, borderRadius:10, background:t.cardAlt, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <Icon name="info" size={16} color={t.textSec} />
+                </div>
+                <span style={{ fontSize:14, color:t.textSec, fontWeight:500 }}>Note</span>
+              </div>
+              <span style={{ fontSize:14, fontWeight:500, color:t.text, textAlign:'right', maxWidth:'60%', lineHeight:1.5 }}>{txn.note}</span>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Action buttons */}
+        <div style={{ padding:'20px 24px 32px', display:'flex', gap:12 }}>
+          <div onClick={handleDelete} style={{
+            flex:1, padding:'14px 0', borderRadius:14, textAlign:'center', fontSize:14, fontWeight:700,
+            background: confirmDelete ? t.danger : t.cardAlt,
+            color: confirmDelete ? '#fff' : t.danger,
+            cursor:'pointer', transition:'all 0.2s ease',
+            border: confirmDelete ? 'none' : `1.5px solid ${t.danger}33`,
+          }}>
+            {confirmDelete ? 'Confirm Delete' : 'Delete'}
+          </div>
+          <div onClick={() => { onEdit(txn); onClose(); }} style={{
+            flex:2, padding:'14px 0', borderRadius:14, textAlign:'center', fontSize:14, fontWeight:700,
+            background:`linear-gradient(135deg, ${t.primaryLight} 0%, ${t.primary} 100%)`,
+            color:'#fff', cursor:'pointer',
+            boxShadow:`0 6px 20px ${t.primary}44`,
+            display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+          }}>
+            <Icon name="edit" size={16} color="#fff" />
+            Edit Expense
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── EDIT EXPENSE SCREEN ──────────────────────────────────────────────────────
+const EditExpenseScreen = ({ txn, t, currency, onBack, onSave }) => {
+  const [amount, setAmount] = React.useState(String(txn.amount));
+  const [title, setTitle] = React.useState(txn.title);
+  const [category, setCategory] = React.useState(txn.category);
+  const [date, setDate] = React.useState(txn.date);
+  const [note, setNote] = React.useState(txn.note || '');
+  const [showDatePicker, setShowDatePicker] = React.useState(false);
+
+  const categories = Object.keys(CAT_COLORS);
+  const canSave = amount && parseFloat(amount) > 0 && title.trim() && category;
+  const displayDate = new Date(date).toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+
+  const handleSave = () => {
+    if (!canSave) return;
+    onSave({ ...txn, title: title.trim(), category, amount: parseFloat(amount), date, note: note.trim() });
+  };
+
+  return (
+    <div style={{ flex:1, display:'flex', flexDirection:'column', background:t.bg, animation:'slideInRight 0.25s ease' }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px', background:t.bg }}>
+        <div onClick={onBack} style={{ width:36, height:36, borderRadius:10, background:t.cardAlt, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+          <Icon name="back" size={20} color={t.text} />
+        </div>
+        <div style={{ fontSize:17, fontWeight:700, color:t.text }}>Edit Expense</div>
+        <div onClick={handleSave} style={{ fontSize:14, fontWeight:700, color: canSave ? t.primary : t.textSec, cursor: canSave ? 'pointer' : 'default', padding:'8px 4px', transition:'color 0.2s ease' }}>Save</div>
+      </div>
+
+      <div style={{ flex:1, overflowY:'auto', padding:'8px 16px 32px', scrollbarWidth:'none' }}>
+        {/* Amount */}
+        <div style={{ background:t.card, borderRadius:20, padding:'24px 20px', marginBottom:12, boxShadow:t.shadow }}>
+          <div style={{ fontSize:13, color:t.textSec, fontWeight:500, marginBottom:12, textAlign:'center' }}>Amount</div>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+            <div style={{ fontSize:40, fontWeight:800, color:t.textSec }}>{currency}</div>
+            <input value={amount} onChange={e => setAmount(e.target.value.replace(/[^0-9.]/g,''))}
+              placeholder="0" inputMode="numeric"
+              style={{ border:'none', outline:'none', background:'transparent', fontSize:48, fontWeight:800, color:t.text, width:'100%', maxWidth:220, textAlign:'center', fontFamily:'Inter, sans-serif', caretColor:t.primary }} />
+          </div>
+        </div>
+
+        {/* Title */}
+        <div style={{ background:t.card, borderRadius:16, padding:'14px 16px', marginBottom:10, boxShadow:t.shadow }}>
+          <div style={{ fontSize:11, color:t.textSec, fontWeight:600, letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:8 }}>Title</div>
+          <input value={title} onChange={e => setTitle(e.target.value)} placeholder="What did you spend on?"
+            style={{ width:'100%', border:'none', outline:'none', background:'transparent', fontSize:15, color:t.text, fontFamily:'Inter, sans-serif', caretColor:t.primary }} />
+        </div>
+
+        {/* Category */}
+        <div style={{ background:t.card, borderRadius:16, padding:'14px 16px', marginBottom:10, boxShadow:t.shadow }}>
+          <div style={{ fontSize:11, color:t.textSec, fontWeight:600, letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:12 }}>Category</div>
+          <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+            {categories.map(cat => {
+              const sel = category === cat;
+              return (
+                <div key={cat} onClick={() => setCategory(cat)} style={{
+                  display:'flex', alignItems:'center', gap:6, padding:'8px 12px', borderRadius:12,
+                  background: sel ? CAT_COLORS[cat] : t.cardAlt,
+                  border:`1.5px solid ${sel ? CAT_COLORS[cat] : t.border}`,
+                  cursor:'pointer', fontSize:13, fontWeight: sel ? 700 : 500,
+                  color: sel ? '#fff' : t.text, transition:'all 0.15s ease',
+                  transform: sel ? 'scale(1.02)' : 'scale(1)',
+                }}>
+                  <span>{CAT_ICONS[cat]}</span><span>{cat}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Date */}
+        <div onClick={() => setShowDatePicker(true)} style={{ background:t.card, borderRadius:16, padding:'14px 16px', marginBottom:10, boxShadow:t.shadow, cursor:'pointer' }}>
+          <div style={{ fontSize:11, color:t.textSec, fontWeight:600, letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:8 }}>Date</div>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            <div style={{ fontSize:15, color:t.text, fontWeight:500 }}>{displayDate}</div>
+            <Icon name="calendar" size={18} color={t.textSec} />
+          </div>
+        </div>
+
+        {/* Note */}
+        <div style={{ background:t.card, borderRadius:16, padding:'14px 16px', marginBottom:10, boxShadow:t.shadow }}>
+          <div style={{ fontSize:11, color:t.textSec, fontWeight:600, letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:8 }}>Note <span style={{ fontWeight:400, textTransform:'none' }}>(optional)</span></div>
+          <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="Add a note..." rows={3}
+            style={{ width:'100%', border:'none', outline:'none', background:'transparent', fontSize:14, color:t.text, fontFamily:'Inter, sans-serif', resize:'none', caretColor:t.primary, lineHeight:1.5 }} />
+        </div>
+
+        <div onClick={handleSave} style={{
+          padding:'16px', borderRadius:16, textAlign:'center', fontSize:16, fontWeight:700,
+          background: canSave ? `linear-gradient(135deg, ${t.primaryLight} 0%, ${t.primary} 100%)` : t.cardAlt,
+          color: canSave ? '#fff' : t.textSec, cursor: canSave ? 'pointer' : 'default',
+          transition:'all 0.2s ease', marginTop:8,
+          boxShadow: canSave ? `0 8px 24px ${t.primary}44` : 'none',
+        }}>Save Changes</div>
+      </div>
+
+      {showDatePicker && <DatePickerModal value={date} onChange={setDate} onClose={() => setShowDatePicker(false)} t={t} />}
+    </div>
+  );
+};
+
+// ─── ONBOARDING SCREEN ────────────────────────────────────────────────────────
+const OnboardingScreen = ({ t, onDone }) => {
+  const [step, setStep] = React.useState(0);
+  const slides = [
+    {
+      emoji: '💰',
+      title: 'Track Every Penny',
+      desc: 'Log your daily expenses in seconds. Stay on top of where your money goes, effortlessly.',
+      color: '#0D9488',
+      bg: 'linear-gradient(160deg, #0D9488 0%, #0F766E 100%)',
+    },
+    {
+      emoji: '📊',
+      title: 'Visualize Your Spending',
+      desc: 'Beautiful charts and breakdowns show you exactly which categories are eating your budget.',
+      color: '#8B5CF6',
+      bg: 'linear-gradient(160deg, #8B5CF6 0%, #7C3AED 100%)',
+    },
+    {
+      emoji: '🎯',
+      title: 'Spend Smarter',
+      desc: 'Compare months, spot trends, and take control of your financial life — one expense at a time.',
+      color: '#F97316',
+      bg: 'linear-gradient(160deg, #F97316 0%, #EA580C 100%)',
+    },
+  ];
+  const slide = slides[step];
+  const isLast = step === slides.length - 1;
+
+  return (
+    <div style={{ flex:1, display:'flex', flexDirection:'column', background:t.bg, overflow:'hidden', minHeight:0 }}>
+      {/* Hero area */}
+      <div style={{
+        flex: '0 0 62%',
+        background: slide.bg,
+        display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
+        padding:40, gap:20, transition:'background 0.5s ease',
+        position:'relative', overflow:'hidden',
+      }}>
+        {/* Decorative circles */}
+        <div style={{ position:'absolute', width:280, height:280, borderRadius:'50%', background:'rgba(255,255,255,0.06)', top:-60, right:-80 }} />
+        <div style={{ position:'absolute', width:180, height:180, borderRadius:'50%', background:'rgba(255,255,255,0.06)', bottom:20, left:-40 }} />
+
+        <div style={{ fontSize:80, animation:'float 3s ease-in-out infinite', position:'relative', zIndex:1 }}>{slide.emoji}</div>
+        <div style={{ fontSize:26, fontWeight:800, color:'#fff', textAlign:'center', lineHeight:1.25, position:'relative', zIndex:1, animation:'fadeInUp 0.4s ease both' }}>
+          {slide.title}
+        </div>
+        <div style={{ fontSize:15, color:'rgba(255,255,255,0.8)', textAlign:'center', lineHeight:1.6, maxWidth:260, position:'relative', zIndex:1, animation:'fadeInUp 0.4s ease 0.1s both' }}>
+          {slide.desc}
+        </div>
+      </div>
+
+      {/* Bottom area */}
+      <div style={{ flexShrink:0, padding:'28px 24px 40px', background:t.bg, display:'flex', flexDirection:'column', gap:24 }}>
+        {/* Dots */}
+        <div style={{ display:'flex', justifyContent:'center', gap:8 }}>
+          {slides.map((_, i) => (
+            <div key={i} onClick={() => setStep(i)} style={{
+              height:8, borderRadius:4, cursor:'pointer',
+              width: i === step ? 24 : 8,
+              background: i === step ? slide.color : t.border,
+              transition:'all 0.3s ease',
+            }} />
+          ))}
+        </div>
+
+        {/* Buttons */}
+        <div style={{ display:'flex', gap:12 }}>
+          {!isLast && (
+            <div onClick={onDone} style={{
+              flex:1, padding:'15px 0', borderRadius:14, textAlign:'center', fontSize:14, fontWeight:600,
+              background:t.cardAlt, color:t.textSec, cursor:'pointer',
+            }}>Skip</div>
+          )}
+          <div onClick={() => isLast ? onDone() : setStep(s => s+1)} style={{
+            flex: isLast ? 1 : 2, padding:'15px 0', borderRadius:14, textAlign:'center', fontSize:15, fontWeight:700,
+            background: slide.bg, color:'#fff', cursor:'pointer',
+            boxShadow:`0 8px 24px ${slide.color}44`,
+            transition:'background 0.4s ease',
+          }}>
+            {isLast ? 'Get Started' : 'Next'}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── SETTINGS SCREEN ─────────────────────────────────────────────────────────
+const SettingsScreen = ({ t, onBack, darkMode, onToggleDark, currency, onCurrencyChange, onClearData, confirmClear }) => {
+  const currencies = [
+    { value:'৳', label:'Bangladeshi Taka (৳)' },
+    { value:'$', label:'US Dollar ($)' },
+    { value:'€', label:'Euro (€)' },
+    { value:'£', label:'British Pound (£)' },
+    { value:'₹', label:'Indian Rupee (₹)' },
+  ];
+  const [showCurrencyPicker, setShowCurrencyPicker] = React.useState(false);
+  const [notifEnabled, setNotifEnabled] = React.useState(true);
+
+  const SettingRow = ({ icon, label, sublabel, right, onClick, danger }) => (
+    <div onClick={onClick} style={{
+      display:'flex', alignItems:'center', gap:14, padding:'14px 16px',
+      cursor: onClick ? 'pointer' : 'default',
+      transition:'background 0.15s ease',
+    }}
+      onMouseEnter={e => onClick && (e.currentTarget.style.background = t.cardAlt)}
+      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+    >
+      <div style={{ width:38, height:38, borderRadius:10, background: danger ? '#EF444422' : t.cardAlt, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+        <Icon name={icon} size={18} color={danger ? '#EF4444' : t.textSec} />
+      </div>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontSize:14, fontWeight:600, color: danger ? '#EF4444' : t.text }}>{label}</div>
+        {sublabel && <div style={{ fontSize:12, color:t.textSec, marginTop:2 }}>{sublabel}</div>}
+      </div>
+      {right}
+    </div>
+  );
+
+  const Toggle = ({ value, onChange }) => (
+    <div onClick={() => onChange(!value)} style={{
+      width:46, height:26, borderRadius:13, background: value ? t.primary : t.border,
+      position:'relative', cursor:'pointer', transition:'background 0.2s ease', flexShrink:0,
+    }}>
+      <div style={{
+        width:20, height:20, borderRadius:'50%', background:'#fff',
+        position:'absolute', top:3, left: value ? 23 : 3,
+        transition:'left 0.2s ease', boxShadow:'0 1px 4px rgba(0,0,0,0.2)',
+      }} />
+    </div>
+  );
+
+  const SectionHeader = ({ title }) => (
+    <div style={{ padding:'20px 16px 8px', fontSize:11, fontWeight:700, color:t.textSec, letterSpacing:'0.08em', textTransform:'uppercase' }}>{title}</div>
+  );
+
+  return (
+    <div style={{ flex:1, display:'flex', flexDirection:'column', background:t.bg, animation:'slideInRight 0.25s ease' }}>
+      {/* App bar */}
+      <div style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 16px 8px' }}>
+        <div onClick={onBack} style={{ width:36, height:36, borderRadius:10, background:t.cardAlt, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+          <Icon name="back" size={20} color={t.text} />
+        </div>
+        <div style={{ fontSize:17, fontWeight:700, color:t.text }}>Settings</div>
+      </div>
+
+      <div style={{ flex:1, overflowY:'auto', scrollbarWidth:'none', paddingBottom:32 }}>
+        {/* Profile card */}
+        <div style={{ margin:'8px 16px 0', background:`linear-gradient(135deg, ${t.primary}22, ${t.primary}0a)`, borderRadius:16, padding:'16px', border:`1px solid ${t.primary}22`, display:'flex', alignItems:'center', gap:14 }}>
+          <div style={{ width:52, height:52, borderRadius:16, background:`linear-gradient(135deg, ${t.primary}, ${t.primaryDark})`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:22 }}>💳</div>
+          <div>
+            <div style={{ fontSize:16, fontWeight:700, color:t.text }}>My Wallet</div>
+            <div style={{ fontSize:13, color:t.textSec, marginTop:2 }}>Personal expense tracker</div>
+          </div>
+        </div>
+
+        {/* Appearance */}
+        <SectionHeader title="Appearance" />
+        <div style={{ margin:'0 16px', background:t.card, borderRadius:16, overflow:'hidden', boxShadow:t.shadow }}>
+          <SettingRow icon="moon" label="Dark Mode" sublabel="Switch to dark theme"
+            right={<Toggle value={darkMode} onChange={onToggleDark} />} />
+        </div>
+
+        {/* Preferences */}
+        <SectionHeader title="Preferences" />
+        <div style={{ margin:'0 16px', background:t.card, borderRadius:16, overflow:'hidden', boxShadow:t.shadow }}>
+          <SettingRow icon="globe" label="Currency" sublabel={currencies.find(c => c.value === currency)?.label}
+            onClick={() => setShowCurrencyPicker(true)}
+            right={<Icon name="chevRight" size={16} color={t.textSec} />} />
+          <div style={{ height:1, background:t.border, margin:'0 16px' }} />
+          <SettingRow icon="bell" label="Reminders" sublabel="Daily expense reminders"
+            right={<Toggle value={notifEnabled} onChange={setNotifEnabled} />} />
+        </div>
+
+        {/* About */}
+        <SectionHeader title="About" />
+        <div style={{ margin:'0 16px', background:t.card, borderRadius:16, overflow:'hidden', boxShadow:t.shadow }}>
+          <SettingRow icon="shield" label="Privacy Policy" onClick={() => window.open('about:blank')} right={<Icon name="chevRight" size={16} color={t.textSec} />} />
+          <div style={{ height:1, background:t.border, margin:'0 16px' }} />
+          <SettingRow icon="info" label="App Version" sublabel="1.0.0" />
+        </div>
+
+        {/* Danger zone */}
+        <SectionHeader title="Data" />
+        <div style={{ margin:'0 16px', background:t.card, borderRadius:16, overflow:'hidden', boxShadow:t.shadow }}>
+          <SettingRow icon="trash" label={confirmClear ? "Tap again to confirm" : "Clear All Data"} sublabel={confirmClear ? "This will delete everything!" : "This cannot be undone"} danger onClick={onClearData} />
+        </div>
+      </div>
+
+      {/* Currency picker modal */}
+      {showCurrencyPicker && (
+        <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'flex-end', zIndex:200, animation:'fadeIn 0.2s ease' }}
+          onClick={() => setShowCurrencyPicker(false)}>
+          <div style={{ width:'100%', background:t.card, borderRadius:'24px 24px 0 0', padding:24, animation:'sheetIn 0.3s ease' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize:16, fontWeight:700, color:t.text, marginBottom:16 }}>Select Currency</div>
+            {currencies.map(c => (
+              <div key={c.value} onClick={() => { onCurrencyChange(c.value); setShowCurrencyPicker(false); }} style={{
+                display:'flex', alignItems:'center', justifyContent:'space-between',
+                padding:'14px 0', borderBottom:`1px solid ${t.border}`, cursor:'pointer',
+              }}>
+                <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                  <div style={{ width:36, height:36, borderRadius:10, background: currency === c.value ? t.primary + '22' : t.cardAlt, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, fontWeight:700, color: currency === c.value ? t.primary : t.text }}>{c.value}</div>
+                  <span style={{ fontSize:14, fontWeight:500, color:t.text }}>{c.label}</span>
+                </div>
+                {currency === c.value && <Icon name="check" size={18} color={t.primary} />}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── TRANSACTION ITEM ────────────────────────────────────────────────────────
+const TxnItem = ({ txn, t, currency, onDelete, onTap, animIndex }) => {
+  const [swiped, setSwiped] = React.useState(false);
+  const [removing, setRemoving] = React.useState(false);
+  const touchStartX = React.useRef(null);
+  const isDragging = React.useRef(false);
+
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    setRemoving(true);
+    setTimeout(() => onDelete(txn.id), 350);
+  };
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+    isDragging.current = false;
+  };
+
+  const handleTouchMove = (e) => {
+    if (touchStartX.current === null) return;
+    const dx = touchStartX.current - e.touches[0].clientX;
+    if (dx > 30) { isDragging.current = true; setSwiped(true); }
+    else if (dx < -10) { isDragging.current = false; setSwiped(false); }
+  };
+
+  const handleTouchEnd = () => { touchStartX.current = null; };
+
+  const handleClick = () => {
+    if (isDragging.current) { isDragging.current = false; return; }
+    if (swiped) { setSwiped(false); return; }
+    onTap(txn);
+  };
+
+  return (
+    <div style={{
+      position:'relative', overflow:'hidden', borderRadius:12, marginBottom:2,
+      animation: `fadeInUp 0.4s ease ${animIndex * 0.06}s both`,
+      height: removing ? 0 : 'auto',
+      transition: removing ? 'height 0.35s ease, opacity 0.35s ease' : undefined,
+      opacity: removing ? 0 : 1,
+    }}>
+      {/* Swipe delete bg */}
+      <div style={{
+        position:'absolute', right:0, top:0, bottom:0, width:80,
+        background:t.danger, display:'flex', alignItems:'center', justifyContent:'center',
+        borderRadius:'0 12px 12px 0',
+      }}>
+        <div onClick={handleDelete} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, cursor:'pointer' }}>
+          <Icon name="trash" size={18} color="#fff" />
+          <span style={{ fontSize:10, color:'#fff', fontWeight:600 }}>Delete</span>
+        </div>
+      </div>
+
+      {/* Item */}
+      <div style={{
+        display:'flex', alignItems:'center', gap:12, padding:'10px 12px',
+        background:t.card, borderRadius:12, cursor:'pointer', userSelect:'none',
+        transform: swiped ? 'translateX(-80px)' : 'translateX(0)',
+        transition:'transform 0.25s cubic-bezier(0.25,0.46,0.45,0.94)',
+        position:'relative', zIndex:1,
+      }}
+        onClick={handleClick}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div style={{
+          width:44, height:44, borderRadius:12, flexShrink:0,
+          background: CAT_COLORS[txn.category] + '22',
+          display:'flex', alignItems:'center', justifyContent:'center',
+          fontSize:20,
+        }}>{CAT_ICONS[txn.category]}</div>
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ fontSize:14, fontWeight:600, color:t.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{txn.title}</div>
+          <div style={{ fontSize:12, color:t.textSec, marginTop:2 }}>{txn.category}</div>
+        </div>
+        <div style={{ textAlign:'right', flexShrink:0 }}>
+          <div style={{ fontSize:15, fontWeight:700, color:t.expense }}>-{fmt(txn.amount, currency)}</div>
+          <div style={{ fontSize:11, color:t.textSec, marginTop:2 }}>
+            {new Date(txn.date).toLocaleDateString('en-US', { month:'short', day:'numeric' })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── HOME SCREEN ─────────────────────────────────────────────────────────────
+const HomeScreen = ({ t, currency, data, setData, monthKey, month, year, onPrevMonth, onNextMonth, onAddExpense, searchMode, setSearchMode, onTapTxn, onGoAnalytics }) => {
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [refreshing, setRefreshing] = React.useState(false);
+  const [toast, setToast] = React.useState(null);
+  const [showAll, setShowAll] = React.useState(false);
+  const scrollRef = React.useRef(null);
+  const pullStartY = React.useRef(null);
+
+  const txns = (data[monthKey] || []).slice().sort((a,b) => new Date(b.date) - new Date(a.date));
+  const monthTotal = txns.reduce((s,t) => s+t.amount, 0);
+  const todayTotal = getTodayTotal(txns, currency);
+
+  const allFilteredTxns = searchQuery
+    ? txns.filter(tx => tx.title.toLowerCase().includes(searchQuery.toLowerCase()) || tx.category.toLowerCase().includes(searchQuery.toLowerCase()) || tx.date === searchQuery)
+    : txns;
+  const filteredTxns = showAll ? allFilteredTxns : allFilteredTxns.slice(0, 10);
+
+  const handlePullStart = (e) => { if (scrollRef.current?.scrollTop === 0) pullStartY.current = e.touches?.[0]?.clientY ?? e.clientY; };
+  const handlePullEnd = (e) => {
+    if (pullStartY.current === null) return;
+    const endY = e.changedTouches?.[0]?.clientY ?? e.clientY;
+    if (endY - pullStartY.current > 60) { setRefreshing(true); setTimeout(() => setRefreshing(false), 1200); }
+    pullStartY.current = null;
+  };
+
+  const groups = groupByDate(filteredTxns);
+
+  const handleDelete = (id) => {
+    setData(prev => ({
+      ...prev,
+      [monthKey]: (prev[monthKey] || []).filter(t => t.id !== id)
+    }));
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1200);
+  };
+
+  React.useEffect(() => {
+    if (window._toastMsg) {
+      setToast(window._toastMsg);
+      window._toastMsg = null;
+      setTimeout(() => setToast(null), 2500);
+    }
+  });
+
+  return (
+    <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', background:t.bg }}>
+      {/* Header */}
+      <div style={{ padding:'12px 16px 0', background:t.bg }}>
+        {/* Top row */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
+          {searchMode ? (
+            <div style={{ flex:1, display:'flex', alignItems:'center', gap:8, background:t.inputBg, borderRadius:12, padding:'8px 12px', border:`1px solid ${t.border}`, animation:'fadeIn 0.2s ease' }}>
+              <Icon name="search" size={16} color={t.textSec} />
+              <input
+                autoFocus
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search expenses..."
+                style={{ flex:1, border:'none', outline:'none', background:'transparent', fontSize:14, color:t.text, fontFamily:'Inter, sans-serif' }}
+              />
+              {searchQuery && (
+                <div onClick={() => setSearchQuery('')} style={{ cursor:'pointer', display:'flex' }}>
+                  <Icon name="x" size={16} color={t.textSec} />
+                </div>
+              )}
+              <div onClick={() => { setSearchMode(false); setSearchQuery(''); }} style={{ cursor:'pointer', fontSize:13, fontWeight:500, color:t.primary }}>Cancel</div>
+            </div>
+          ) : (
+            <>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <div onClick={onPrevMonth} style={{ width:32, height:32, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', background:t.cardAlt }}>
+                  <Icon name="chevLeft" size={18} color={t.text} />
+                </div>
+                <div style={{ fontSize:15, fontWeight:700, color:t.text, minWidth:120, textAlign:'center' }}>
+                  {MONTHS[month - 1]} {year}
+                </div>
+                <div onClick={onNextMonth} style={{ width:32, height:32, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', background:t.cardAlt }}>
+                  <Icon name="chevRight" size={18} color={t.text} />
+                </div>
+              </div>
+              <div style={{ display:'flex', gap:8 }}>
+                <div onClick={() => setSearchMode(true)} style={{ width:36, height:36, borderRadius:10, background:t.cardAlt, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+                  <Icon name="search" size={18} color={t.text} />
+                </div>
+                <div style={{ width:36, height:36, borderRadius:10, background:t.cardAlt, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}
+                  onClick={() => onTapTxn && onTapTxn('settings')}>
+                  <Icon name="settings" size={18} color={t.text} />
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Summary Cards */}
+        {!searchMode && (
+          <div style={{ display:'flex', gap:12, marginBottom:20 }}>
+            <div onClick={onGoAnalytics} style={{
+              flex:1, borderRadius:16, padding:'16px',
+              background:`linear-gradient(135deg, ${t.primary} 0%, ${t.primaryDark} 100%)`,
+              boxShadow:`0 8px 24px ${t.primary}44`,
+              animation:'fadeInUp 0.4s ease both', cursor:'pointer',
+              transition:'transform 0.15s ease',
+            }}
+              onMouseEnter={e => e.currentTarget.style.transform='scale(1.02)'}
+              onMouseLeave={e => e.currentTarget.style.transform='scale(1)'}
+            >
+              <div style={{ fontSize:11, color:'rgba(255,255,255,0.75)', fontWeight:500, letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:6 }}>This Month</div>
+              <div style={{ fontSize:26, fontWeight:800, color:'#fff', letterSpacing:'-0.5px' }}>{fmt(monthTotal, currency)}</div>
+              <div style={{ fontSize:11, color:'rgba(255,255,255,0.6)', marginTop:4 }}>{txns.length} transactions</div>
+            </div>
+            <div onClick={() => { setSearchMode(true); setSearchQuery('2026-05-03'); setShowAll(true); }} style={{
+              flex:0.65, borderRadius:16, padding:'16px',
+              background:`linear-gradient(135deg, #F97316 0%, #EA580C 100%)`,
+              boxShadow:'0 8px 24px rgba(249,115,22,0.35)',
+              animation:'fadeInUp 0.4s ease 0.1s both', cursor:'pointer',
+              transition:'transform 0.15s ease',
+            }}
+              onMouseEnter={e => e.currentTarget.style.transform='scale(1.02)'}
+              onMouseLeave={e => e.currentTarget.style.transform='scale(1)'}
+            >
+              <div style={{ fontSize:11, color:'rgba(255,255,255,0.75)', fontWeight:500, letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:6 }}>Today</div>
+              <div style={{ fontSize:22, fontWeight:800, color:'#fff', letterSpacing:'-0.5px' }}>{fmt(todayTotal, currency)}</div>
+              <div style={{ fontSize:11, color:'rgba(255,255,255,0.6)', marginTop:4 }}>
+                {txns.filter(x => x.date === '2026-05-03').length} items
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Scrollable transactions */}
+      <div ref={scrollRef} style={{ flex:1, overflowY:'auto', padding:'0 16px 80px', scrollbarWidth:'none' }}
+        onTouchStart={handlePullStart} onTouchEnd={handlePullEnd}
+        onMouseDown={handlePullStart} onMouseUp={handlePullEnd}
+      >
+        {/* Pull to refresh hint */}
+        {refreshing && (
+          <div style={{ display:'flex', justifyContent:'center', padding:'8px 0 4px', animation:'pulseRefresh 0.6s ease infinite' }}>
+            <Icon name="refresh" size={18} color={t.primary} style={{ animation:'spin 1s linear infinite' }} />
+          </div>
+        )}
+
+        {filteredTxns.length === 0 ? (
+          <EmptyState t={t} />
+        ) : (
+          <>
+            {/* Section header */}
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+              <div style={{ fontSize:15, fontWeight:700, color:t.text }}>
+                {searchMode ? `Results (${filteredTxns.length})` : 'Recent Transactions'}
+              </div>
+              {!searchMode && (
+                <div onClick={() => setShowAll(v => !v)} style={{ fontSize:13, color:t.primary, fontWeight:500, cursor:'pointer' }}>{showAll ? 'Show Less' : 'See All'}</div>
+              )}
+            </div>
+
+            {Object.entries(groups).map(([dateLabel, items]) => (
+              <div key={dateLabel} style={{ marginBottom:16 }}>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
+                  <div style={{ fontSize:12, fontWeight:600, color:t.textSec, letterSpacing:'0.04em' }}>{dateLabel}</div>
+                  <div style={{ fontSize:12, color:t.textSec }}>
+                    {fmt(items.reduce((s,i) => s+i.amount, 0), currency)}
+                  </div>
+                </div>
+                {items.map((txn, i) => (
+                  <TxnItem key={txn.id} txn={txn} t={t} currency={currency} onDelete={handleDelete} onTap={onTapTxn} animIndex={i} />
+                ))}
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+
+      {/* FAB */}
+      <div onClick={onAddExpense} style={{
+        position:'absolute', bottom:76, right:20,
+        width:56, height:56, borderRadius:'50%',
+        background:`linear-gradient(135deg, ${t.primaryLight} 0%, ${t.primary} 100%)`,
+        display:'flex', alignItems:'center', justifyContent:'center',
+        boxShadow:`0 8px 24px ${t.primary}55`,
+        cursor:'pointer', zIndex:10,
+        transition:'transform 0.15s ease, box-shadow 0.15s ease',
+      }}
+        onMouseEnter={e => { e.currentTarget.style.transform='scale(1.1)'; e.currentTarget.style.boxShadow=`0 12px 32px ${t.primary}66`; }}
+        onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; e.currentTarget.style.boxShadow=`0 8px 24px ${t.primary}55`; }}
+      >
+        <Icon name="plus" size={24} color="#fff" />
+      </div>
+
+      {toast && <Toast message={toast} visible={!!toast} />}
+    </div>
+  );
+};
+
+// ─── DATE PICKER MODAL ───────────────────────────────────────────────────────
+const DatePickerModal = ({ value, onChange, onClose, t }) => {
+  const [sel, setSel] = React.useState(value || '2026-05-03');
+  const d = new Date(sel);
+  const [viewYear, setViewYear] = React.useState(d.getFullYear());
+  const [viewMonth, setViewMonth] = React.useState(d.getMonth());
+
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  const cells = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let i = 1; i <= daysInMonth; i++) cells.push(i);
+
+  const selDate = new Date(sel);
+
+  return (
+    <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'flex-end', zIndex:100, animation:'fadeIn 0.2s ease' }}
+      onClick={onClose}>
+      <div style={{ width:'100%', background:t.card, borderRadius:'24px 24px 0 0', padding:24, animation:'slideInUp 0.3s ease' }}
+        onClick={e => e.stopPropagation()}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+          <div onClick={() => { const d = new Date(viewYear, viewMonth - 1, 1); setViewYear(d.getFullYear()); setViewMonth(d.getMonth()); }} style={{ cursor:'pointer', padding:4 }}>
+            <Icon name="chevLeft" size={20} color={t.text} />
+          </div>
+          <div style={{ fontSize:15, fontWeight:700, color:t.text }}>{MONTHS[viewMonth]} {viewYear}</div>
+          <div onClick={() => { const d = new Date(viewYear, viewMonth + 1, 1); setViewYear(d.getFullYear()); setViewMonth(d.getMonth()); }} style={{ cursor:'pointer', padding:4 }}>
+            <Icon name="chevRight" size={20} color={t.text} />
+          </div>
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:4, marginBottom:8 }}>
+          {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => (
+            <div key={d} style={{ textAlign:'center', fontSize:11, fontWeight:600, color:t.textSec, padding:'4px 0' }}>{d}</div>
+          ))}
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:4 }}>
+          {cells.map((day, i) => {
+            if (!day) return <div key={`e${i}`} />;
+            const dateStr = `${viewYear}-${String(viewMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+            const isSelected = dateStr === sel;
+            return (
+              <div key={day} onClick={() => setSel(dateStr)} style={{
+                textAlign:'center', padding:'8px 0', borderRadius:10, cursor:'pointer', fontSize:14, fontWeight: isSelected ? 700 : 400,
+                background: isSelected ? t.primary : 'transparent',
+                color: isSelected ? '#fff' : t.text,
+                transition:'background 0.15s ease',
+              }}>{day}</div>
+            );
+          })}
+        </div>
+        <div style={{ marginTop:20, display:'flex', gap:12 }}>
+          <div onClick={onClose} style={{ flex:1, padding:'14px 0', borderRadius:14, border:`1.5px solid ${t.border}`, textAlign:'center', fontSize:14, fontWeight:600, color:t.text, cursor:'pointer' }}>Cancel</div>
+          <div onClick={() => { onChange(sel); onClose(); }} style={{ flex:1, padding:'14px 0', borderRadius:14, background:t.primary, textAlign:'center', fontSize:14, fontWeight:600, color:'#fff', cursor:'pointer' }}>Confirm</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── ADD EXPENSE SCREEN ───────────────────────────────────────────────────────
+const AddExpenseScreen = ({ t, currency, onBack, onSave, monthKey }) => {
+  const [amount, setAmount] = React.useState('');
+  const [title, setTitle] = React.useState('');
+  const [category, setCategory] = React.useState('');
+  const [date, setDate] = React.useState('2026-05-03');
+  const [note, setNote] = React.useState('');
+  const [showDatePicker, setShowDatePicker] = React.useState(false);
+  const [errors, setErrors] = React.useState({});
+  const [shake, setShake] = React.useState(false);
+
+  const categories = Object.keys(CAT_COLORS);
+  const canSave = amount && parseFloat(amount) > 0 && title.trim() && category;
+
+  const handleSave = () => {
+    const errs = {};
+    if (!amount || parseFloat(amount) <= 0) errs.amount = 'Enter a valid amount';
+    if (!title.trim()) errs.title = 'Title is required';
+    if (!category) errs.category = 'Pick a category';
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
+      return;
+    }
+    onSave({ id: generateId(), title: title.trim(), category, amount: parseFloat(amount), date, note: note.trim() });
+  };
+
+  const displayDate = new Date(date).toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+
+  return (
+    <div style={{ flex:1, display:'flex', flexDirection:'column', background:t.bg, animation:'slideInRight 0.25s ease' }}>
+      {/* App bar */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px', background:t.bg }}>
+        <div onClick={onBack} style={{ width:36, height:36, borderRadius:10, background:t.cardAlt, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+          <Icon name="back" size={20} color={t.text} />
+        </div>
+        <div style={{ fontSize:17, fontWeight:700, color:t.text }}>Add Expense</div>
+        <div onClick={handleSave} style={{
+          fontSize:14, fontWeight:700, color: canSave ? t.primary : t.textSec,
+          cursor: canSave ? 'pointer' : 'default', padding:'8px 4px',
+          transition:'color 0.2s ease',
+        }}>Save</div>
+      </div>
+
+      <div style={{ flex:1, overflowY:'auto', padding:'8px 16px 32px', scrollbarWidth:'none' }}>
+        {/* Amount */}
+        <div style={{ background:t.card, borderRadius:20, padding:'24px 20px', marginBottom:12, animation:'fadeInUp 0.3s ease 0.05s both', animation: shake && errors.amount ? 'shake 0.4s ease' : 'fadeInUp 0.3s ease 0.05s both', boxShadow:t.shadow }}>
+          <div style={{ fontSize:13, color:t.textSec, fontWeight:500, marginBottom:12, textAlign:'center' }}>Amount</div>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+            <div style={{ fontSize:40, fontWeight:800, color:t.textSec }}>{currency}</div>
+            <input
+              value={amount}
+              onChange={e => { setAmount(e.target.value.replace(/[^0-9.]/g,'')); setErrors(p => ({...p, amount:null})); }}
+              placeholder="0"
+              inputMode="numeric"
+              style={{
+                border:'none', outline:'none', background:'transparent', fontSize:48, fontWeight:800,
+                color: amount ? t.text : t.textSec, width:'100%', maxWidth:220, textAlign:'center',
+                fontFamily:'Inter, sans-serif', caretColor: t.primary,
+              }}
+            />
+          </div>
+          {errors.amount && <div style={{ fontSize:12, color:t.danger, textAlign:'center', marginTop:8 }}>{errors.amount}</div>}
+        </div>
+
+        {/* Title */}
+        <div style={{ background:t.card, borderRadius:16, padding:'14px 16px', marginBottom:10, animation:'fadeInUp 0.3s ease 0.1s both', boxShadow:t.shadow }}>
+          <div style={{ fontSize:11, color:t.textSec, fontWeight:600, letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:8 }}>Title</div>
+          <input
+            value={title}
+            onChange={e => { setTitle(e.target.value); setErrors(p => ({...p, title:null})); }}
+            placeholder="What did you spend on?"
+            style={{ width:'100%', border:'none', outline:'none', background:'transparent', fontSize:15, color:t.text, fontFamily:'Inter, sans-serif', caretColor:t.primary }}
+          />
+          {errors.title && <div style={{ fontSize:12, color:t.danger, marginTop:6 }}>{errors.title}</div>}
+        </div>
+
+        {/* Category */}
+        <div style={{ background:t.card, borderRadius:16, padding:'14px 16px', marginBottom:10, animation:'fadeInUp 0.3s ease 0.15s both', boxShadow:t.shadow }}>
+          <div style={{ fontSize:11, color:t.textSec, fontWeight:600, letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:12 }}>Category</div>
+          {errors.category && <div style={{ fontSize:12, color:t.danger, marginBottom:8 }}>{errors.category}</div>}
+          <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+            {categories.map(cat => {
+              const sel = category === cat;
+              return (
+                <div key={cat} onClick={() => { setCategory(cat); setErrors(p => ({...p, category:null})); }} style={{
+                  display:'flex', alignItems:'center', gap:6, padding:'8px 12px', borderRadius:12,
+                  background: sel ? CAT_COLORS[cat] : t.cardAlt,
+                  border: `1.5px solid ${sel ? CAT_COLORS[cat] : t.border}`,
+                  cursor:'pointer', fontSize:13, fontWeight: sel ? 700 : 500,
+                  color: sel ? '#fff' : t.text,
+                  transition:'all 0.15s ease',
+                  transform: sel ? 'scale(1.02)' : 'scale(1)',
+                }}>
+                  <span>{CAT_ICONS[cat]}</span>
+                  <span>{cat}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Date */}
+        <div onClick={() => setShowDatePicker(true)} style={{ background:t.card, borderRadius:16, padding:'14px 16px', marginBottom:10, animation:'fadeInUp 0.3s ease 0.2s both', boxShadow:t.shadow, cursor:'pointer' }}>
+          <div style={{ fontSize:11, color:t.textSec, fontWeight:600, letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:8 }}>Date</div>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            <div style={{ fontSize:15, color:t.text, fontWeight:500 }}>{displayDate}</div>
+            <Icon name="calendar" size={18} color={t.textSec} />
+          </div>
+        </div>
+
+        {/* Note */}
+        <div style={{ background:t.card, borderRadius:16, padding:'14px 16px', marginBottom:10, animation:'fadeInUp 0.3s ease 0.25s both', boxShadow:t.shadow }}>
+          <div style={{ fontSize:11, color:t.textSec, fontWeight:600, letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:8 }}>Note <span style={{ fontWeight:400, textTransform:'none' }}>(optional)</span></div>
+          <textarea
+            value={note}
+            onChange={e => setNote(e.target.value)}
+            placeholder="Add a note..."
+            rows={3}
+            style={{ width:'100%', border:'none', outline:'none', background:'transparent', fontSize:14, color:t.text, fontFamily:'Inter, sans-serif', resize:'none', caretColor:t.primary, lineHeight:1.5 }}
+          />
+        </div>
+
+        {/* Save button */}
+        <div onClick={handleSave} style={{
+          padding:'16px', borderRadius:16, textAlign:'center', fontSize:16, fontWeight:700,
+          background: canSave ? `linear-gradient(135deg, ${t.primaryLight} 0%, ${t.primary} 100%)` : t.cardAlt,
+          color: canSave ? '#fff' : t.textSec,
+          cursor: canSave ? 'pointer' : 'default',
+          transition:'all 0.2s ease', marginTop:8,
+          boxShadow: canSave ? `0 8px 24px ${t.primary}44` : 'none',
+          animation:'fadeInUp 0.3s ease 0.3s both',
+        }}>
+          Add Expense
+        </div>
+      </div>
+
+      {showDatePicker && (
+        <DatePickerModal value={date} onChange={setDate} onClose={() => setShowDatePicker(false)} t={t} />
+      )}
+    </div>
+  );
+};
+
+// ─── DONUT CHART ──────────────────────────────────────────────────────────────
+const DonutChart = ({ data, t, currency }) => {
+  const total = data.reduce((s,d) => s + d.amount, 0);
+  if (total === 0) return null;
+
+  const R = 70, strokeW = 22;
+  const circumference = 2 * Math.PI * R;
+  let offset = 0;
+  const segments = data.map(d => {
+    const pct = d.amount / total;
+    const dashLen = pct * circumference;
+    const seg = { ...d, pct, dashLen, offset };
+    offset += dashLen;
+    return seg;
+  });
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', position:'relative' }}>
+      <svg width={200} height={200} viewBox="-10 -10 180 180" style={{ overflow:'visible' }}>
+        <circle cx={80} cy={80} r={R} fill="none" stroke={t.border} strokeWidth={strokeW} />
+        {segments.map((seg, i) => (
+          <circle key={i} cx={80} cy={80} r={R}
+            fill="none" stroke={seg.color} strokeWidth={strokeW}
+            strokeDasharray={`${seg.dashLen} ${circumference - seg.dashLen}`}
+            strokeDashoffset={circumference * 0.25 - seg.offset}
+            strokeLinecap="butt"
+            style={{ transition:`stroke-dashoffset 0.8s ease ${i * 0.08}s, stroke-dasharray 0.8s ease ${i * 0.08}s` }}
+          />
+        ))}
+        <text x={80} y={72} textAnchor="middle" fontSize={11} fill={t.textSec} fontFamily="Inter, sans-serif" fontWeight={500}>Total</text>
+        <text x={80} y={92} textAnchor="middle" fontSize={16} fill={t.text} fontFamily="Inter, sans-serif" fontWeight={800}>{fmt(total, currency)}</text>
+      </svg>
+    </div>
+  );
+};
+
+// ─── ANALYTICS SCREEN ────────────────────────────────────────────────────────
+const AnalyticsScreen = ({ t, currency, data, monthKey, month, year, onPrevMonth, onNextMonth }) => {
+  const txns = data[monthKey] || [];
+  const total = txns.reduce((s,t) => s + t.amount, 0);
+
+  // Prev month comparison
+  const prevKey = month === 1 ? `${year-1}-12` : `${year}-${month-1}`;
+  const prevTotal = (data[prevKey] || []).reduce((s,t) => s + t.amount, 0);
+  const diff = prevTotal > 0 ? Math.round((total - prevTotal) / prevTotal * 100) : null;
+
+  // Category breakdown
+  const catTotals = {};
+  txns.forEach(txn => {
+    catTotals[txn.category] = (catTotals[txn.category] || 0) + txn.amount;
+  });
+  const catData = Object.entries(catTotals)
+    .map(([cat, amount]) => ({ cat, amount, color: CAT_COLORS[cat], pct: total ? Math.round(amount/total*100) : 0 }))
+    .sort((a,b) => b.amount - a.amount);
+
+  return (
+    <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', background:t.bg }}>
+      {/* Header */}
+      <div style={{ padding:'12px 16px 0', background:t.bg }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+          <div style={{ fontSize:22, fontWeight:800, color:t.text }}>Analytics</div>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <div onClick={onPrevMonth} style={{ width:32, height:32, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', background:t.cardAlt }}>
+              <Icon name="chevLeft" size={18} color={t.text} />
+            </div>
+            <div style={{ fontSize:13, fontWeight:600, color:t.text, minWidth:90, textAlign:'center' }}>{MONTHS[month-1].slice(0,3)} {year}</div>
+            <div onClick={onNextMonth} style={{ width:32, height:32, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', background:t.cardAlt }}>
+              <Icon name="chevRight" size={18} color={t.text} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ flex:1, overflowY:'auto', padding:'0 16px 80px', scrollbarWidth:'none' }}>
+        {txns.length === 0 ? (
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'60px 24px', gap:16 }}>
+            <div style={{ fontSize:56, animation:'float 3s ease-in-out infinite' }}>📊</div>
+            <div style={{ fontSize:16, fontWeight:600, color:t.text }}>No data for this month</div>
+            <div style={{ fontSize:13, color:t.textSec }}>Add some expenses to see analytics</div>
+          </div>
+        ) : (
+          <>
+            {/* Overview card */}
+            <div style={{ background:`linear-gradient(135deg, ${t.primary} 0%, ${t.primaryDark} 100%)`, borderRadius:20, padding:20, marginBottom:16, boxShadow:`0 8px 24px ${t.primary}44`, animation:'fadeInUp 0.3s ease both' }}>
+              <div style={{ fontSize:13, color:'rgba(255,255,255,0.7)', fontWeight:500, marginBottom:6 }}>Total Spent</div>
+              <div style={{ fontSize:32, fontWeight:800, color:'#fff', letterSpacing:'-1px', marginBottom:8 }}>{fmt(total, currency)}</div>
+              {diff !== null && (
+                <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(255,255,255,0.15)', borderRadius:8, padding:'6px 10px', width:'fit-content' }}>
+                  {diff > 0 ? <Icon name="trendUp" size={14} color="#fff" /> : <Icon name="trendDown" size={14} color="#fff" />}
+                  <span style={{ fontSize:12, color:'#fff', fontWeight:600 }}>
+                    {diff > 0 ? '+' : ''}{diff}% from last month
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Donut */}
+            <div style={{ background:t.card, borderRadius:20, padding:20, marginBottom:16, boxShadow:t.shadow, animation:'fadeInUp 0.3s ease 0.1s both' }}>
+              <div style={{ fontSize:15, fontWeight:700, color:t.text, marginBottom:16 }}>Spending by Category</div>
+              <DonutChart data={catData} t={t} currency={currency} />
+            </div>
+
+            {/* Category list */}
+            <div style={{ background:t.card, borderRadius:20, padding:'16px', boxShadow:t.shadow, animation:'fadeInUp 0.3s ease 0.2s both' }}>
+              <div style={{ fontSize:15, fontWeight:700, color:t.text, marginBottom:14 }}>Breakdown</div>
+              {catData.map((c, i) => (
+                <div key={c.cat} style={{ marginBottom: i < catData.length - 1 ? 16 : 0, animation:`fadeInUp 0.3s ease ${0.25 + i*0.05}s both` }}>
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                      <div style={{ width:10, height:10, borderRadius:'50%', background:c.color, flexShrink:0 }} />
+                      <span style={{ fontSize:14, fontWeight:500, color:t.text }}>{c.cat}</span>
+                      <span style={{ fontSize:11, color:t.textSec }}>{CAT_ICONS[c.cat]}</span>
+                    </div>
+                    <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                      <span style={{ fontSize:13, fontWeight:600, color:t.text }}>{fmt(c.amount, currency)}</span>
+                      <span style={{ fontSize:11, color:t.textSec, minWidth:32, textAlign:'right' }}>{c.pct}%</span>
+                    </div>
+                  </div>
+                  {/* Bar */}
+                  <div style={{ height:6, background:t.border, borderRadius:3, overflow:'hidden' }}>
+                    <div style={{
+                      height:'100%', borderRadius:3, background:c.color,
+                      width:`${c.pct}%`, transition:`width 0.8s cubic-bezier(0.34,1.56,0.64,1) ${i*0.05}s`,
+                    }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─── BOTTOM NAV ───────────────────────────────────────────────────────────────
+const BottomNav = ({ tab, setTab, t }) => (
+  <div style={{
+    display:'flex', borderTop:`1px solid ${t.border}`, background:t.navBg,
+    height:64, position:'absolute', bottom:0, left:0, right:0, zIndex:20,
+  }}>
+    {[
+      { id:'home', icon:'home', label:'Home' },
+      { id:'analytics', icon:'analytics', label:'Analytics' },
+    ].map(item => {
+      const active = tab === item.id;
+      return (
+        <div key={item.id} onClick={() => setTab(item.id)} style={{
+          flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:4,
+          cursor:'pointer', transition:'opacity 0.15s ease',
+        }}>
+          <Icon name={item.icon} size={22} color={active ? t.primary : t.textSec} />
+          <span style={{ fontSize:11, fontWeight: active ? 700 : 500, color: active ? t.primary : t.textSec }}>{item.label}</span>
+        </div>
+      );
+    })}
+  </div>
+);
+
+// ─── MAIN APP ─────────────────────────────────────────────────────────────────
+const App = () => {
+  const { useTweaks, TweaksPanel, TweakSection, TweakToggle, TweakColor, TweakSelect } = window;
+
+  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const { darkMode, currency, accentColor } = tweaks;
+  const t = theme(darkMode, accentColor);
+
+  const [screen, setScreen] = React.useState('onboarding'); // onboarding | home | add | edit | settings
+  const [tab, setTab] = React.useState('home');
+  const [data, setData] = React.useState(INITIAL_DATA);
+  const [curYear, setCurYear] = React.useState(2026);
+  const [curMonth, setCurMonth] = React.useState(5);
+  const [searchMode, setSearchMode] = React.useState(false);
+  const [selectedTxn, setSelectedTxn] = React.useState(null); // for detail sheet
+  const [editingTxn, setEditingTxn] = React.useState(null);   // for edit screen
+  const [confirmClear, setConfirmClear] = React.useState(false);
+
+  const handleClearData = () => {
+    if (!confirmClear) { setConfirmClear(true); setTimeout(() => setConfirmClear(false), 3000); return; }
+    setData({});
+    setConfirmClear(false);
+    window._toastMsg = 'All data cleared';
+    setScreen('home');
+    setTab('home');
+  };
+
+  const monthKey = `${curYear}-${curMonth}`;
+
+  const handlePrevMonth = () => {
+    if (curMonth === 1) { setCurYear(y => y-1); setCurMonth(12); }
+    else setCurMonth(m => m-1);
+  };
+  const handleNextMonth = () => {
+    if (curMonth === 12) { setCurYear(y => y+1); setCurMonth(1); }
+    else setCurMonth(m => m+1);
+  };
+
+  const handleSaveExpense = (expense) => {
+    const eMonth = parseInt(expense.date.split('-')[1]);
+    const eYear = parseInt(expense.date.split('-')[0]);
+    const key = `${eYear}-${eMonth}`;
+    setData(prev => ({ ...prev, [key]: [expense, ...(prev[key] || [])] }));
+    window._toastMsg = 'Expense added successfully ✓';
+    setScreen('home');
+    setTab('home');
+  };
+
+  const handleSaveEdit = (updated) => {
+    const eMonth = parseInt(updated.date.split('-')[1]);
+    const eYear = parseInt(updated.date.split('-')[0]);
+    const key = `${eYear}-${eMonth}`;
+    // Remove from all months, add to correct month
+    setData(prev => {
+      const next = {};
+      Object.keys(prev).forEach(k => {
+        next[k] = (prev[k] || []).filter(x => x.id !== updated.id);
+      });
+      next[key] = [updated, ...(next[key] || [])];
+      return next;
+    });
+    window._toastMsg = 'Expense updated ✓';
+    setScreen('home');
+    setEditingTxn(null);
+  };
+
+  const handleDeleteTxn = (id) => {
+    setData(prev => {
+      const next = {};
+      Object.keys(prev).forEach(k => { next[k] = (prev[k] || []).filter(x => x.id !== id); });
+      return next;
+    });
+    setSelectedTxn(null);
+  };
+
+  const handleTapTxn = (txnOrAction) => {
+    if (txnOrAction === 'settings') { setScreen('settings'); return; }
+    setSelectedTxn(txnOrAction);
+  };
+
+  const renderScreen = () => {
+    if (screen === 'onboarding') return <OnboardingScreen t={t} onDone={() => setScreen('home')} />;
+    if (screen === 'add') return <AddExpenseScreen t={t} currency={currency} onBack={() => setScreen('home')} onSave={handleSaveExpense} monthKey={monthKey} />;
+    if (screen === 'edit' && editingTxn) return <EditExpenseScreen txn={editingTxn} t={t} currency={currency} onBack={() => { setScreen('home'); setEditingTxn(null); }} onSave={handleSaveEdit} />;
+    if (screen === 'settings') return <SettingsScreen t={t} onBack={() => setScreen('home')} darkMode={darkMode} onToggleDark={v => setTweak('darkMode', v)} currency={currency} onCurrencyChange={v => setTweak('currency', v)} onClearData={handleClearData} confirmClear={confirmClear} />;;
+    if (tab === 'analytics') return <AnalyticsScreen t={t} currency={currency} data={data} monthKey={monthKey} month={curMonth} year={curYear} onPrevMonth={handlePrevMonth} onNextMonth={handleNextMonth} />;
+    return (
+      <HomeScreen
+        t={t} currency={currency} data={data} setData={setData}
+        monthKey={monthKey} month={curMonth} year={curYear}
+        onPrevMonth={handlePrevMonth} onNextMonth={handleNextMonth}
+        onAddExpense={() => setScreen('add')}
+        searchMode={searchMode} setSearchMode={setSearchMode}
+        onTapTxn={handleTapTxn}
+        onGoAnalytics={() => setTab('analytics')}
+      />
+    );
+  };
+
+  const showNav = screen !== 'add' && screen !== 'edit' && screen !== 'onboarding' && screen !== 'settings';
+
+  return (
+    <>
+      <AndroidDevice dark={darkMode} width={390} height={844}>
+        <div style={{
+          width:'100%', height:'100%', display:'flex', flexDirection:'column',
+          background:t.bg, position:'relative', overflow:'hidden', fontFamily:'Inter, sans-serif',
+        }}>
+          {renderScreen()}
+          {showNav && <BottomNav tab={tab} setTab={setTab} t={t} />}
+
+          {/* Expense detail sheet overlay */}
+          {selectedTxn && (
+            <ExpenseDetailSheet
+              txn={selectedTxn}
+              t={t}
+              currency={currency}
+              onClose={() => setSelectedTxn(null)}
+              onEdit={(txn) => { setEditingTxn(txn); setScreen('edit'); }}
+              onDelete={handleDeleteTxn}
+            />
+          )}
+        </div>
+      </AndroidDevice>
+
+      <TweaksPanel>
+        <TweakSection title="Appearance">
+          <TweakToggle id="darkMode" label="Dark Mode" value={darkMode} onChange={v => setTweak('darkMode', v)} />
+          <TweakColor id="accentColor" label="Accent Color" value={accentColor} onChange={v => setTweak('accentColor', v)} />
+        </TweakSection>
+        <TweakSection title="Locale">
+          <TweakSelect id="currency" label="Currency Symbol" value={currency}
+            options={[
+              { value:'৳', label:'৳ Taka' },
+              { value:'$', label:'$ Dollar' },
+              { value:'€', label:'€ Euro' },
+              { value:'£', label:'£ Pound' },
+              { value:'₹', label:'₹ Rupee' },
+            ]}
+            onChange={v => setTweak('currency', v)} />
+        </TweakSection>
+      </TweaksPanel>
+    </>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

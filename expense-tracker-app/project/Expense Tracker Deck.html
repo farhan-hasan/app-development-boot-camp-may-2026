@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Expense Tracker — Design Presentation</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<meta name="ext-resource-dependency" content="deck-stage.js" data-resource-id="deckStage" />
+<template id="__bundler_thumbnail" data-bg-color="#0a0a0f">
+  <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+    <!-- Dark bg -->
+    <rect width="400" height="300" fill="#0a0a0f"/>
+    <!-- Decorative rings -->
+    <circle cx="200" cy="130" r="100" fill="none" stroke="rgba(13,148,136,0.15)" stroke-width="1"/>
+    <circle cx="200" cy="130" r="130" fill="none" stroke="rgba(13,148,136,0.08)" stroke-width="1"/>
+    <!-- App icon -->
+    <rect x="174" y="74" width="52" height="52" rx="14" fill="#0D9488"/>
+    <text x="200" y="108" text-anchor="middle" font-size="28" font-family="sans-serif">💰</text>
+    <!-- Title text -->
+    <rect x="130" y="142" width="140" height="18" rx="4" fill="white" opacity="0.9"/>
+    <rect x="155" y="168" width="90" height="10" rx="3" fill="rgba(255,255,255,0.3)"/>
+    <!-- Tag pills -->
+    <rect x="108" y="190" width="80" height="18" rx="9" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+    <rect x="198" y="190" width="60" height="18" rx="9" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+    <rect x="268" y="190" width="50" height="18" rx="9" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  </svg>
+</template>
+<script src="deck-stage.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+deck-stage { --slide-bg: #0a0a0f; }
+
+section {
+  width: 100%; height: 100%;
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ── SHARED ──────────────────────────────── */
+.label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; opacity: 0.55;
+}
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 100px;
+  font-size: 12px; font-weight: 600;
+}
+
+/* ── PHONE MOCK ──────────────────────────── */
+.phone {
+  width: 260px; flex-shrink: 0;
+  border-radius: 40px;
+  border: 8px solid rgba(255,255,255,0.12);
+  overflow: hidden;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06);
+  position: relative;
+  background: #0f172a;
+}
+.phone-screen {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+}
+.status-bar {
+  height: 28px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px; font-size: 11px; font-weight: 600; flex-shrink: 0;
+}
+.bottom-bar {
+  height: 20px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; padding-bottom: 4px;
+}
+.home-indicator {
+  width: 80px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.3);
+}
+
+/* ── SLIDE 1: TITLE ──────────────────────── */
+#s1 {
+  background: linear-gradient(135deg, #0a0a0f 0%, #0d1a2e 100%);
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 0;
+  position: relative;
+}
+#s1 .bg-ring {
+  position: absolute; border-radius: 50%; border: 1px solid rgba(13,148,136,0.15);
+}
+#s1 .hero-icon {
+  width: 120px; height: 120px; border-radius: 32px;
+  background: linear-gradient(135deg, #0D9488, #0F766E);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 56px; margin-bottom: 36px;
+  box-shadow: 0 24px 64px rgba(13,148,136,0.4);
+}
+#s1 h1 {
+  font-size: 72px; font-weight: 900; color: #fff;
+  letter-spacing: -3px; line-height: 1;
+  text-align: center; margin-bottom: 16px;
+}
+#s1 .sub {
+  font-size: 22px; color: rgba(255,255,255,0.5); font-weight: 400;
+  text-align: center; margin-bottom: 48px;
+}
+#s1 .tags {
+  display: flex; gap: 12px;
+}
+#s1 .tag {
+  padding: 8px 20px; border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.1);
+  font-size: 13px; color: rgba(255,255,255,0.6); font-weight: 500;
+}
+
+/* ── SLIDE 2: OVERVIEW ────────────────────── */
+#s2 {
+  background: #0a0a0f;
+  padding: 80px 100px;
+  flex-direction: column; gap: 60px;
+}
+#s2 h2 { font-size: 52px; font-weight: 800; color: #fff; letter-spacing: -2px; }
+#s2 .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+#s2 .card {
+  background: rgba(255,255,255,0.04); border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 28px; display: flex; flex-direction: column; gap: 14px;
+}
+#s2 .card-icon {
+  width: 48px; height: 48px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+}
+#s2 .card-title { font-size: 16px; font-weight: 700; color: #fff; }
+#s2 .card-desc { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.6; }
+
+/* ── SLIDE 3: ONBOARDING ─────────────────── */
+#s3 {
+  background: #0a0a0f;
+  padding: 80px 100px;
+  align-items: center; gap: 80px;
+}
+#s3 .copy { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+#s3 h2 { font-size: 52px; font-weight: 800; color: #fff; letter-spacing: -2px; line-height: 1.1; }
+#s3 .desc { font-size: 18px; color: rgba(255,255,255,0.5); line-height: 1.7; max-width: 440px; }
+#s3 .phones { display: flex; gap: 24px; align-items: center; }
+#s3 .phone { height: 480px; }
+#s3 .phone:nth-child(2) { transform: translateY(-20px); }
+#s3 .phone:nth-child(3) { transform: translateY(20px); }
+
+/* ── SLIDE 4: HOME ────────────────────────── */
+#s4 {
+  background: #f0fafa;
+  padding: 80px 100px;
+  align-items: center; gap: 80px;
+}
+#s4 .copy { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+#s4 h2 { font-size: 52px; font-weight: 800; color: #111827; letter-spacing: -2px; line-height: 1.1; }
+#s4 .desc { font-size: 18px; color: #6B7280; line-height: 1.7; max-width: 440px; }
+#s4 .features { display: flex; flex-direction: column; gap: 14px; margin-top: 8px; }
+#s4 .feat { display: flex; align-items: center; gap: 12px; }
+#s4 .feat-dot { width: 8px; height: 8px; border-radius: 50%; background: #0D9488; flex-shrink: 0; }
+#s4 .feat-text { font-size: 15px; color: #374151; font-weight: 500; }
+#s4 .phone { height: 520px; background: #fff; }
+
+/* ── SLIDE 5: ADD EXPENSE ─────────────────── */
+#s5 {
+  background: #0f172a;
+  padding: 80px 100px;
+  align-items: center; gap: 80px;
+}
+#s5 .phone { height: 520px; order: -1; }
+#s5 .copy { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+#s5 h2 { font-size: 52px; font-weight: 800; color: #fff; letter-spacing: -2px; line-height: 1.1; }
+#s5 .desc { font-size: 18px; color: rgba(255,255,255,0.5); line-height: 1.7; max-width: 440px; }
+#s5 .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+#s5 .chip {
+  padding: 8px 16px; border-radius: 12px;
+  font-size: 13px; font-weight: 600;
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* ── SLIDE 6: DETAIL SHEET ───────────────── */
+#s6 {
+  background: #fafafa;
+  padding: 80px 100px;
+  align-items: center; gap: 80px;
+}
+#s6 .copy { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+#s6 h2 { font-size: 52px; font-weight: 800; color: #111827; letter-spacing: -2px; line-height: 1.1; }
+#s6 .desc { font-size: 18px; color: #6B7280; line-height: 1.7; max-width: 440px; }
+#s6 .phone { height: 520px; background: #fff; }
+#s6 .steps { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
+#s6 .step { display: flex; align-items: flex-start; gap: 14px; }
+#s6 .step-num {
+  width: 28px; height: 28px; border-radius: 50%; background: #0D9488;
+  color: #fff; font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+#s6 .step-text { font-size: 14px; color: #374151; font-weight: 500; line-height: 1.5; padding-top: 4px; }
+
+/* ── SLIDE 7: ANALYTICS ──────────────────── */
+#s7 {
+  background: #0f172a;
+  padding: 80px 100px;
+  align-items: center; gap: 80px;
+}
+#s7 .phone { height: 520px; order: -1; }
+#s7 .copy { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+#s7 h2 { font-size: 52px; font-weight: 800; color: #fff; letter-spacing: -2px; line-height: 1.1; }
+#s7 .desc { font-size: 18px; color: rgba(255,255,255,0.5); line-height: 1.7; max-width: 440px; }
+#s7 .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px; }
+#s7 .stat {
+  background: rgba(255,255,255,0.05); border-radius: 16px;
+  padding: 20px; border: 1px solid rgba(255,255,255,0.08);
+}
+#s7 .stat-val { font-size: 28px; font-weight: 800; color: #fff; }
+#s7 .stat-label { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 4px; font-weight: 500; }
+
+/* ── SLIDE 8: SETTINGS + DARK ────────────── */
+#s8 {
+  background: #0a0a0f;
+  padding: 80px 100px;
+  align-items: center; gap: 60px;
+}
+#s8 .copy { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+#s8 h2 { font-size: 52px; font-weight: 800; color: #fff; letter-spacing: -2px; line-height: 1.1; }
+#s8 .desc { font-size: 18px; color: rgba(255,255,255,0.5); line-height: 1.7; max-width: 440px; }
+#s8 .phones { display: flex; gap: 24px; align-items: center; }
+#s8 .phone { height: 480px; }
+#s8 .phone.light { background: #fff; }
+#s8 .phone:nth-child(1) { transform: rotate(-4deg) translateY(10px); }
+#s8 .phone:nth-child(2) { transform: rotate(3deg) translateY(-10px); }
+
+/* ── SLIDE 9: DESIGN SYSTEM ──────────────── */
+#s9 {
+  background: #0a0a0f;
+  padding: 80px 100px;
+  flex-direction: column; gap: 48px;
+}
+#s9 h2 { font-size: 52px; font-weight: 800; color: #fff; letter-spacing: -2px; }
+#s9 .row { display: flex; gap: 48px; }
+#s9 .col { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+#s9 .col-title { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.4); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+#s9 .swatches { display: flex; gap: 8px; }
+#s9 .swatch { width: 44px; height: 44px; border-radius: 12px; }
+#s9 .type-sample { color: #fff; }
+#s9 .cat-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ── SLIDE 10: END ───────────────────────── */
+#s10 {
+  background: linear-gradient(135deg, #0D9488 0%, #0F766E 50%, #065F46 100%);
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 32px;
+  position: relative; overflow: hidden;
+}
+#s10::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 30% 50%, rgba(255,255,255,0.08) 0%, transparent 60%);
+}
+#s10 .end-icon { font-size: 80px; }
+#s10 h2 { font-size: 64px; font-weight: 900; color: #fff; letter-spacing: -3px; text-align: center; }
+#s10 .sub { font-size: 22px; color: rgba(255,255,255,0.7); text-align: center; }
+#s10 .cta {
+  padding: 16px 40px; border-radius: 100px;
+  background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3);
+  color: #fff; font-size: 16px; font-weight: 700; margin-top: 8px;
+  backdrop-filter: blur(10px);
+}
+</style>
+</head>
+<body>
+<deck-stage>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 1 — TITLE
+════════════════════════════════════════════════════════ -->
+<section id="s1" data-screen-label="01 Title">
+  <!-- Background rings -->
+  <div class="bg-ring" style="width:700px;height:700px;top:50%;left:50%;transform:translate(-50%,-50%)"></div>
+  <div class="bg-ring" style="width:900px;height:900px;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.5"></div>
+  <div class="bg-ring" style="width:1100px;height:1100px;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.3"></div>
+
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;">
+    <div class="hero-icon">💰</div>
+    <h1>Expense<br>Tracker</h1>
+    <div class="sub">Mobile App UI/UX Design</div>
+    <div class="tags">
+      <div class="tag">Flutter • iOS & Android</div>
+      <div class="tag">Minimal Design</div>
+      <div class="tag">Dark Mode</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 2 — OVERVIEW / FEATURE LIST
+════════════════════════════════════════════════════════ -->
+<section id="s2" data-screen-label="02 Overview">
+  <div class="label" style="color:rgba(255,255,255,0.4)">App Overview</div>
+  <h2>Built for people who<br>want simplicity.</h2>
+  <div class="grid">
+    <div class="card">
+      <div class="card-icon" style="background:rgba(13,148,136,0.15);">💸</div>
+      <div class="card-title">Quick Logging</div>
+      <div class="card-desc">Add any expense in under 5 seconds with smart category detection.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(139,92,246,0.15);">📊</div>
+      <div class="card-title">Visual Analytics</div>
+      <div class="card-desc">Animated donut charts and category breakdowns show the full picture.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(249,115,22,0.15);">🔍</div>
+      <div class="card-title">Smart Search</div>
+      <div class="card-desc">Real-time filtering across all transactions by title or category.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(34,197,94,0.15);">🌙</div>
+      <div class="card-title">Dark Mode</div>
+      <div class="card-desc">Full dark variant for all screens with system-adaptive colors.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 3 — ONBOARDING
+════════════════════════════════════════════════════════ -->
+<section id="s3" data-screen-label="03 Onboarding">
+  <div class="copy">
+    <div class="label" style="color:rgba(255,255,255,0.4)">Screen 01</div>
+    <h2>Onboarding<br>Experience</h2>
+    <div class="desc">Three focused slides that communicate the core value. Each with a distinct gradient, animated emoji, and a progress dot indicator.</div>
+    <div style="display:flex;gap:12px;margin-top:8px;">
+      <div class="pill" style="background:rgba(13,148,136,0.2);color:#14B8A6;">Track</div>
+      <div class="pill" style="background:rgba(139,92,246,0.2);color:#A78BFA;">Visualize</div>
+      <div class="pill" style="background:rgba(249,115,22,0.2);color:#FB923C;">Spend Smart</div>
+    </div>
+  </div>
+  <div class="phones">
+    <!-- Phone 1: Onboarding slide 1 -->
+    <div class="phone" style="height:480px;">
+      <div class="phone-screen">
+        <div style="flex:1;background:linear-gradient(160deg,#0D9488,#0F766E);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;position:relative;overflow:hidden;">
+          <div style="position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.06);top:-40px;right:-50px;"></div>
+          <div style="font-size:56px;">💰</div>
+          <div style="font-size:20px;font-weight:800;color:#fff;text-align:center;line-height:1.2;">Track Every Penny</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.75);text-align:center;line-height:1.6;">Log your daily expenses in seconds. Stay on top of where your money goes.</div>
+        </div>
+        <div style="padding:20px 20px 16px;background:#FAFAFA;display:flex;flex-direction:column;gap:16px;">
+          <div style="display:flex;justify-content:center;gap:8px;">
+            <div style="width:20px;height:7px;border-radius:4px;background:#0D9488;"></div>
+            <div style="width:7px;height:7px;border-radius:4px;background:#E5E7EB;"></div>
+            <div style="width:7px;height:7px;border-radius:4px;background:#E5E7EB;"></div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;padding:12px 0;border-radius:12px;background:#F1F5F9;text-align:center;font-size:13px;font-weight:600;color:#6B7280;">Skip</div>
+            <div style="flex:2;padding:12px 0;border-radius:12px;background:linear-gradient(135deg,#0D9488,#0F766E);text-align:center;font-size:13px;font-weight:700;color:#fff;">Next →</div>
+          </div>
+        </div>
+        <div class="bottom-bar" style="background:#FAFAFA;"><div class="home-indicator" style="background:rgba(0,0,0,0.2);"></div></div>
+      </div>
+    </div>
+    <!-- Phone 2: Onboarding slide 2 -->
+    <div class="phone" style="height:480px;transform:translateY(-20px);">
+      <div class="phone-screen">
+        <div style="flex:1;background:linear-gradient(160deg,#8B5CF6,#7C3AED);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;position:relative;overflow:hidden;">
+          <div style="position:absolute;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.06);bottom:10px;left:-30px;"></div>
+          <div style="font-size:56px;">📊</div>
+          <div style="font-size:20px;font-weight:800;color:#fff;text-align:center;line-height:1.2;">Visualize Spending</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.75);text-align:center;line-height:1.6;">Beautiful charts show exactly which categories eat your budget.</div>
+        </div>
+        <div style="padding:20px 20px 16px;background:#FAFAFA;display:flex;flex-direction:column;gap:16px;">
+          <div style="display:flex;justify-content:center;gap:8px;">
+            <div style="width:7px;height:7px;border-radius:4px;background:#E5E7EB;"></div>
+            <div style="width:20px;height:7px;border-radius:4px;background:#8B5CF6;"></div>
+            <div style="width:7px;height:7px;border-radius:4px;background:#E5E7EB;"></div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;padding:12px 0;border-radius:12px;background:#F1F5F9;text-align:center;font-size:13px;font-weight:600;color:#6B7280;">Skip</div>
+            <div style="flex:2;padding:12px 0;border-radius:12px;background:linear-gradient(135deg,#8B5CF6,#7C3AED);text-align:center;font-size:13px;font-weight:700;color:#fff;">Next →</div>
+          </div>
+        </div>
+        <div class="bottom-bar" style="background:#FAFAFA;"><div class="home-indicator" style="background:rgba(0,0,0,0.2);"></div></div>
+      </div>
+    </div>
+    <!-- Phone 3: Onboarding slide 3 -->
+    <div class="phone" style="height:480px;transform:translateY(20px);">
+      <div class="phone-screen">
+        <div style="flex:1;background:linear-gradient(160deg,#F97316,#EA580C);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;position:relative;overflow:hidden;">
+          <div style="position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,0.06);top:-20px;left:-20px;"></div>
+          <div style="font-size:56px;">🎯</div>
+          <div style="font-size:20px;font-weight:800;color:#fff;text-align:center;line-height:1.2;">Spend Smarter</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.75);text-align:center;line-height:1.6;">Compare months, spot trends, and take control of your financial life.</div>
+        </div>
+        <div style="padding:20px 20px 16px;background:#FAFAFA;display:flex;flex-direction:column;gap:16px;">
+          <div style="display:flex;justify-content:center;gap:8px;">
+            <div style="width:7px;height:7px;border-radius:4px;background:#E5E7EB;"></div>
+            <div style="width:7px;height:7px;border-radius:4px;background:#E5E7EB;"></div>
+            <div style="width:20px;height:7px;border-radius:4px;background:#F97316;"></div>
+          </div>
+          <div style="padding:12px 0;border-radius:12px;background:linear-gradient(135deg,#F97316,#EA580C);text-align:center;font-size:14px;font-weight:700;color:#fff;">Get Started 🚀</div>
+        </div>
+        <div class="bottom-bar" style="background:#FAFAFA;"><div class="home-indicator" style="background:rgba(0,0,0,0.2);"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 4 — HOME DASHBOARD
+════════════════════════════════════════════════════════ -->
+<section id="s4" data-screen-label="04 Home Dashboard">
+  <div class="copy">
+    <div class="label" style="color:#0D9488;">Screen 02</div>
+    <h2>Home<br>Dashboard</h2>
+    <div class="desc">The central hub. Month navigation, live summary cards, and a staggered transaction list grouped by date.</div>
+    <div class="features">
+      <div class="feat"><div class="feat-dot"></div><div class="feat-text">Month navigator with ← → arrows</div></div>
+      <div class="feat"><div class="feat-dot"></div><div class="feat-text">This Month + Today summary cards</div></div>
+      <div class="feat"><div class="feat-dot"></div><div class="feat-text">Grouped transaction list (Today / Yesterday)</div></div>
+      <div class="feat"><div class="feat-dot"></div><div class="feat-text">Swipe-to-delete with confirmation</div></div>
+      <div class="feat"><div class="feat-dot"></div><div class="feat-text">FAB for quick expense entry</div></div>
+      <div class="feat"><div class="feat-dot"></div><div class="feat-text">Collapsible search bar</div></div>
+    </div>
+  </div>
+  <!-- Phone mock: Home -->
+  <div class="phone" style="height:560px;background:#FAFAFA;">
+    <div class="phone-screen" style="background:#FAFAFA;">
+      <div class="status-bar" style="background:#FAFAFA;color:#111827;">
+        <span>9:41</span>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <span style="font-size:9px;">▲▲▲</span><span>100%</span>
+        </div>
+      </div>
+      <!-- Header -->
+      <div style="padding:8px 14px 0;background:#FAFAFA;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:26px;height:26px;border-radius:50%;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:12px;">‹</div>
+            <div style="font-size:13px;font-weight:700;color:#111827;min-width:90px;text-align:center;">May 2026</div>
+            <div style="width:26px;height:26px;border-radius:50%;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:12px;">›</div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <div style="width:30px;height:30px;border-radius:8px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:13px;">🔍</div>
+            <div style="width:30px;height:30px;border-radius:8px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:13px;">⚙️</div>
+          </div>
+        </div>
+        <!-- Summary cards -->
+        <div style="display:flex;gap:8px;margin-bottom:14px;">
+          <div style="flex:1;border-radius:14px;padding:12px;background:linear-gradient(135deg,#0D9488,#0F766E);box-shadow:0 6px 16px rgba(13,148,136,0.35);">
+            <div style="font-size:9px;color:rgba(255,255,255,0.7);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:4px;">This Month</div>
+            <div style="font-size:20px;font-weight:800;color:#fff;letter-spacing:-0.5px;">৳5,950</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.55);margin-top:2px;">10 transactions</div>
+          </div>
+          <div style="flex:0.7;border-radius:14px;padding:12px;background:linear-gradient(135deg,#F97316,#EA580C);box-shadow:0 6px 16px rgba(249,115,22,0.3);">
+            <div style="font-size:9px;color:rgba(255,255,255,0.7);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:4px;">Today</div>
+            <div style="font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.5px;">৳650</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.55);margin-top:2px;">3 items</div>
+          </div>
+        </div>
+      </div>
+      <!-- Txn list -->
+      <div style="flex:1;overflow:hidden;padding:0 14px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <div style="font-size:12px;font-weight:700;color:#111827;">Recent Transactions</div>
+          <div style="font-size:11px;color:#0D9488;font-weight:500;">See All</div>
+        </div>
+        <div style="font-size:10px;font-weight:600;color:#6B7280;margin-bottom:6px;">Today · ৳650</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border-radius:10px;margin-bottom:4px;">
+          <div style="width:34px;height:34px;border-radius:9px;background:#F59E0B22;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🍔</div>
+          <div style="flex:1;min-width:0;"><div style="font-size:11px;font-weight:600;color:#111827;">Lunch at Dhanmondi</div><div style="font-size:10px;color:#6B7280;">Food</div></div>
+          <div style="font-size:12px;font-weight:700;color:#F97316;">-৳320</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border-radius:10px;margin-bottom:4px;">
+          <div style="width:34px;height:34px;border-radius:9px;background:#3B82F622;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🚗</div>
+          <div style="flex:1;min-width:0;"><div style="font-size:11px;font-weight:600;color:#111827;">Uber to office</div><div style="font-size:10px;color:#6B7280;">Transport</div></div>
+          <div style="font-size:12px;font-weight:700;color:#F97316;">-৳180</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border-radius:10px;margin-bottom:4px;">
+          <div style="width:34px;height:34px;border-radius:9px;background:#F59E0B22;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🍳</div>
+          <div style="flex:1;min-width:0;"><div style="font-size:11px;font-weight:600;color:#111827;">Breakfast</div><div style="font-size:10px;color:#6B7280;">Food</div></div>
+          <div style="font-size:12px;font-weight:700;color:#F97316;">-৳150</div>
+        </div>
+        <div style="font-size:10px;font-weight:600;color:#6B7280;margin-top:8px;margin-bottom:6px;">Yesterday · ৳1,950</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border-radius:10px;">
+          <div style="width:34px;height:34px;border-radius:9px;background:#F9731622;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🎬</div>
+          <div style="flex:1;"><div style="font-size:11px;font-weight:600;color:#111827;">Netflix subscription</div><div style="font-size:10px;color:#6B7280;">Entertainment</div></div>
+          <div style="font-size:12px;font-weight:700;color:#F97316;">-৳650</div>
+        </div>
+      </div>
+      <!-- FAB -->
+      <div style="position:absolute;bottom:52px;right:14px;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#14B8A6,#0D9488);display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;box-shadow:0 6px 20px rgba(13,148,136,0.45);">+</div>
+      <!-- Bottom nav -->
+      <div style="height:52px;background:#fff;border-top:1px solid #E5E7EB;display:flex;align-items:center;justify-content:space-around;flex-shrink:0;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+          <span style="font-size:18px;">🏠</span><span style="font-size:9px;font-weight:700;color:#0D9488;">Home</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+          <span style="font-size:18px;">📊</span><span style="font-size:9px;color:#6B7280;">Analytics</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 5 — ADD EXPENSE
+════════════════════════════════════════════════════════ -->
+<section id="s5" data-screen-label="05 Add Expense">
+  <!-- Phone mock -->
+  <div class="phone" style="height:560px;background:#FAFAFA;order:-1;">
+    <div class="phone-screen" style="background:#FAFAFA;">
+      <div class="status-bar" style="background:#FAFAFA;color:#111827;"><span>9:41</span><span>100%</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;">
+        <div style="width:30px;height:30px;border-radius:8px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:14px;">‹</div>
+        <div style="font-size:14px;font-weight:700;color:#111827;">Add Expense</div>
+        <div style="font-size:12px;font-weight:700;color:#6B7280;">Save</div>
+      </div>
+      <div style="flex:1;overflow:hidden;padding:0 14px 14px;display:flex;flex-direction:column;gap:8px;">
+        <!-- Amount -->
+        <div style="background:#fff;border-radius:16px;padding:18px 14px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+          <div style="font-size:11px;color:#6B7280;font-weight:500;margin-bottom:8px;">Amount</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+            <span style="font-size:28px;font-weight:800;color:#6B7280;">৳</span>
+            <span style="font-size:40px;font-weight:800;color:#111827;letter-spacing:-2px;">450</span>
+          </div>
+        </div>
+        <!-- Title -->
+        <div style="background:#fff;border-radius:12px;padding:11px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+          <div style="font-size:9px;color:#6B7280;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:5px;">Title</div>
+          <div style="font-size:13px;color:#111827;font-weight:500;">Lunch at Dhanmondi</div>
+        </div>
+        <!-- Category chips -->
+        <div style="background:#fff;border-radius:12px;padding:11px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+          <div style="font-size:9px;color:#6B7280;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:8px;">Category</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;">
+            <div style="display:flex;align-items:center;gap:4px;padding:5px 9px;border-radius:8px;background:#F59E0B;border:1.5px solid #F59E0B;font-size:10px;font-weight:700;color:#fff;">🍔 Food</div>
+            <div style="display:flex;align-items:center;gap:4px;padding:5px 9px;border-radius:8px;background:#F1F5F9;border:1.5px solid #E5E7EB;font-size:10px;font-weight:500;color:#111827;">🚗 Transport</div>
+            <div style="display:flex;align-items:center;gap:4px;padding:5px 9px;border-radius:8px;background:#F1F5F9;border:1.5px solid #E5E7EB;font-size:10px;font-weight:500;color:#111827;">🛍️ Shopping</div>
+            <div style="display:flex;align-items:center;gap:4px;padding:5px 9px;border-radius:8px;background:#F1F5F9;border:1.5px solid #E5E7EB;font-size:10px;font-weight:500;color:#111827;">💡 Bills</div>
+            <div style="display:flex;align-items:center;gap:4px;padding:5px 9px;border-radius:8px;background:#F1F5F9;border:1.5px solid #E5E7EB;font-size:10px;font-weight:500;color:#111827;">🎬 Ent.</div>
+            <div style="display:flex;align-items:center;gap:4px;padding:5px 9px;border-radius:8px;background:#F1F5F9;border:1.5px solid #E5E7EB;font-size:10px;font-weight:500;color:#111827;">🏥 Health</div>
+          </div>
+        </div>
+        <!-- Date -->
+        <div style="background:#fff;border-radius:12px;padding:11px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:9px;color:#6B7280;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:5px;">Date</div>
+            <div style="font-size:12px;color:#111827;font-weight:500;">Sat, May 3, 2026</div>
+          </div>
+          <span style="font-size:16px;">📅</span>
+        </div>
+        <!-- Save btn -->
+        <div style="padding:13px;border-radius:14px;background:linear-gradient(135deg,#14B8A6,#0D9488);text-align:center;font-size:13px;font-weight:700;color:#fff;margin-top:auto;box-shadow:0 6px 18px rgba(13,148,136,0.4);">Add Expense</div>
+      </div>
+    </div>
+  </div>
+  <div class="copy">
+    <div class="label" style="color:rgba(255,255,255,0.4);">Screen 03</div>
+    <h2 style="color:#fff;">Add<br>Expense</h2>
+    <div class="desc">A focused form that keeps friction minimal. Large centered amount input, visual category chips, and a native-feel date picker.</div>
+    <div class="chips">
+      <div class="chip" style="background:#F59E0B22;color:#F59E0B;">🍔 Food</div>
+      <div class="chip" style="background:#3B82F622;color:#3B82F6;">🚗 Transport</div>
+      <div class="chip" style="background:#EC489922;color:#EC4899;">🛍️ Shopping</div>
+      <div class="chip" style="background:#8B5CF622;color:#8B5CF6;">💡 Bills</div>
+      <div class="chip" style="background:#F9731622;color:#F97316;">🎬 Entertainment</div>
+      <div class="chip" style="background:#EF444422;color:#EF4444;">🏥 Health</div>
+      <div class="chip" style="background:#6B728022;color:#9CA3AF;">📦 Others</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 6 — EXPENSE DETAIL
+════════════════════════════════════════════════════════ -->
+<section id="s6" data-screen-label="06 Expense Detail">
+  <div class="copy">
+    <div class="label" style="color:#0D9488;">Screen 04</div>
+    <h2>Expense<br>Detail Sheet</h2>
+    <div class="desc">Tap any transaction to reveal a bottom sheet with the full expense details, edit, and delete actions.</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-text">Tap any transaction card on the home screen</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-text">Bottom sheet slides up with full details: category, amount, date, note</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-text">Tap <strong>Edit Expense</strong> to open the pre-filled edit form</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-text">Tap-to-confirm delete prevents accidental data loss</div></div>
+    </div>
+  </div>
+  <!-- Phone mock: Detail sheet -->
+  <div class="phone" style="height:560px;background:#FAFAFA;">
+    <div class="phone-screen" style="background:#FAFAFA;position:relative;">
+      <div class="status-bar" style="background:#FAFAFA;color:#111827;"><span>9:41</span><span>100%</span></div>
+      <!-- Dimmed background -->
+      <div style="flex:1;background:rgba(0,0,0,0.35);position:relative;">
+        <!-- Peeking txn list -->
+        <div style="padding:10px 14px;opacity:0.4;">
+          <div style="font-size:10px;font-weight:600;color:#6B7280;margin-bottom:6px;">Today</div>
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border-radius:10px;">
+            <div style="width:34px;height:34px;border-radius:9px;background:#F59E0B22;display:flex;align-items:center;justify-content:center;font-size:16px;">🍔</div>
+            <div style="flex:1;"><div style="font-size:11px;font-weight:600;color:#111827;">Lunch at Dhanmondi</div><div style="font-size:10px;color:#6B7280;">Food</div></div>
+            <div style="font-size:12px;font-weight:700;color:#F97316;">-৳320</div>
+          </div>
+        </div>
+        <!-- Bottom sheet -->
+        <div style="position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:22px 22px 0 0;padding:0 0 8px;">
+          <div style="display:flex;justify-content:center;padding:10px 0 4px;"><div style="width:30px;height:3px;border-radius:2px;background:#E5E7EB;"></div></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 20px 0;">
+            <div style="width:54px;height:54px;border-radius:16px;background:#F59E0B22;display:flex;align-items:center;justify-content:center;font-size:26px;">🍔</div>
+            <div style="font-size:22px;font-weight:800;color:#F97316;letter-spacing:-1px;">-৳320</div>
+            <div style="font-size:15px;font-weight:700;color:#111827;">Lunch at Dhanmondi</div>
+            <div style="display:flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;background:#F59E0B18;border:1px solid #F59E0B33;">
+              <div style="width:6px;height:6px;border-radius:50%;background:#F59E0B;"></div>
+              <span style="font-size:11px;font-weight:600;color:#F59E0B;">Food</span>
+            </div>
+          </div>
+          <div style="padding:12px 18px 0;border-top:1px solid #F1F5F9;margin-top:12px;">
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F1F5F9;">
+              <span style="font-size:12px;color:#6B7280;">Date</span>
+              <span style="font-size:12px;font-weight:600;color:#111827;">Saturday, May 3, 2026</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;">
+              <span style="font-size:12px;color:#6B7280;">Note</span>
+              <span style="font-size:12px;font-weight:500;color:#111827;">Biriyani + drinks</span>
+            </div>
+          </div>
+          <div style="padding:10px 18px 6px;display:flex;gap:10px;">
+            <div style="flex:1;padding:11px 0;border-radius:12px;border:1.5px solid #EF444433;text-align:center;font-size:12px;font-weight:700;color:#EF4444;">Delete</div>
+            <div style="flex:2;padding:11px 0;border-radius:12px;background:linear-gradient(135deg,#14B8A6,#0D9488);text-align:center;font-size:12px;font-weight:700;color:#fff;">✏️ Edit Expense</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 7 — ANALYTICS
+════════════════════════════════════════════════════════ -->
+<section id="s7" data-screen-label="07 Analytics">
+  <!-- Phone mock -->
+  <div class="phone" style="height:560px;background:#0F172A;order:-1;">
+    <div class="phone-screen" style="background:#0F172A;">
+      <div class="status-bar" style="background:#0F172A;color:#F8FAFC;"><span>9:41</span><span>100%</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px 0;">
+        <div style="font-size:16px;font-weight:800;color:#F8FAFC;">Analytics</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="width:24px;height:24px;border-radius:50%;background:#1E293B;display:flex;align-items:center;justify-content:center;font-size:12px;color:#F8FAFC;">‹</div>
+          <span style="font-size:11px;font-weight:600;color:#F8FAFC;">May 2026</span>
+          <div style="width:24px;height:24px;border-radius:50%;background:#1E293B;display:flex;align-items:center;justify-content:center;font-size:12px;color:#F8FAFC;">›</div>
+        </div>
+      </div>
+      <div style="flex:1;overflow:hidden;padding:10px 14px;display:flex;flex-direction:column;gap:8px;">
+        <!-- Overview card -->
+        <div style="background:linear-gradient(135deg,#0D9488,#0F766E);border-radius:16px;padding:14px;">
+          <div style="font-size:10px;color:rgba(255,255,255,0.65);font-weight:500;margin-bottom:4px;">Total Spent</div>
+          <div style="font-size:26px;font-weight:800;color:#fff;letter-spacing:-1px;margin-bottom:8px;">৳5,950</div>
+          <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.15);border-radius:6px;padding:4px 8px;">
+            <span style="font-size:10px;color:#fff;font-weight:600;">↑ +15% from April</span>
+          </div>
+        </div>
+        <!-- Donut chart area -->
+        <div style="background:#1E293B;border-radius:16px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:8px;">
+          <div style="font-size:12px;font-weight:700;color:#F8FAFC;align-self:flex-start;">Spending by Category</div>
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#334155" stroke-width="14"/>
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#F59E0B" stroke-width="14" stroke-dasharray="66 154" stroke-dashoffset="55"/>
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#8B5CF6" stroke-width="14" stroke-dasharray="46 174" stroke-dashoffset="-11"/>
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#EC4899" stroke-width="14" stroke-dasharray="35 185" stroke-dashoffset="-57"/>
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#3B82F6" stroke-width="14" stroke-dasharray="25 195" stroke-dashoffset="-92"/>
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#EF4444" stroke-width="14" stroke-dasharray="18 202" stroke-dashoffset="-117"/>
+            <text x="50" y="46" text-anchor="middle" font-size="8" fill="#94A3B8" font-family="Inter">Total</text>
+            <text x="50" y="58" text-anchor="middle" font-size="10" fill="#F8FAFC" font-family="Inter" font-weight="800">৳5,950</text>
+          </svg>
+        </div>
+        <!-- Category bars -->
+        <div style="background:#1E293B;border-radius:16px;padding:12px;flex:1;overflow:hidden;">
+          <div style="font-size:12px;font-weight:700;color:#F8FAFC;margin-bottom:10px;">Breakdown</div>
+          <div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;margin-bottom:3px;"><div style="display:flex;align-items:center;gap:5px;"><div style="width:7px;height:7px;border-radius:50%;background:#8B5CF6;"></div><span style="font-size:10px;color:#F8FAFC;font-weight:500;">Bills</span></div><span style="font-size:10px;color:#94A3B8;">42%</span></div><div style="height:4px;background:#334155;border-radius:2px;overflow:hidden;"><div style="height:100%;background:#8B5CF6;border-radius:2px;width:42%;"></div></div></div>
+          <div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;margin-bottom:3px;"><div style="display:flex;align-items:center;gap:5px;"><div style="width:7px;height:7px;border-radius:50%;background:#F59E0B;"></div><span style="font-size:10px;color:#F8FAFC;font-weight:500;">Food</span></div><span style="font-size:10px;color:#94A3B8;">28%</span></div><div style="height:4px;background:#334155;border-radius:2px;overflow:hidden;"><div style="height:100%;background:#F59E0B;border-radius:2px;width:28%;"></div></div></div>
+          <div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;margin-bottom:3px;"><div style="display:flex;align-items:center;gap:5px;"><div style="width:7px;height:7px;border-radius:50%;background:#EC4899;"></div><span style="font-size:10px;color:#F8FAFC;font-weight:500;">Shopping</span></div><span style="font-size:10px;color:#94A3B8;">17%</span></div><div style="height:4px;background:#334155;border-radius:2px;overflow:hidden;"><div style="height:100%;background:#EC4899;border-radius:2px;width:17%;"></div></div></div>
+          <div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;margin-bottom:3px;"><div style="display:flex;align-items:center;gap:5px;"><div style="width:7px;height:7px;border-radius:50%;background:#3B82F6;"></div><span style="font-size:10px;color:#F8FAFC;font-weight:500;">Transport</span></div><span style="font-size:10px;color:#94A3B8;">8%</span></div><div style="height:4px;background:#334155;border-radius:2px;overflow:hidden;"><div style="height:100%;background:#3B82F6;border-radius:2px;width:8%;"></div></div></div>
+        </div>
+      </div>
+      <!-- Bottom nav -->
+      <div style="height:44px;background:#1E293B;border-top:1px solid #334155;display:flex;align-items:center;justify-content:space-around;flex-shrink:0;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1px;"><span style="font-size:16px;opacity:0.5;">🏠</span><span style="font-size:8px;color:#94A3B8;">Home</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1px;"><span style="font-size:16px;">📊</span><span style="font-size:8px;font-weight:700;color:#0D9488;">Analytics</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="copy">
+    <div class="label" style="color:rgba(255,255,255,0.4);">Screen 05</div>
+    <h2>Analytics</h2>
+    <div class="desc">Animated donut chart with per-category segments, month-over-month comparison, and a ranked breakdown list with progress bars.</div>
+    <div class="stats">
+      <div class="stat"><div class="stat-val" style="color:#0D9488;">৳5,950</div><div class="stat-label">May Total</div></div>
+      <div class="stat"><div class="stat-val" style="color:#22C55E;">+15%</div><div class="stat-label">vs. Last Month</div></div>
+      <div class="stat"><div class="stat-val">7</div><div class="stat-label">Categories</div></div>
+      <div class="stat"><div class="stat-val">10</div><div class="stat-label">Transactions</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 8 — SETTINGS + DARK MODE
+════════════════════════════════════════════════════════ -->
+<section id="s8" data-screen-label="08 Settings & Dark Mode">
+  <div class="copy">
+    <div class="label" style="color:rgba(255,255,255,0.4);">Screens 06 & 07</div>
+    <h2>Settings &amp;<br>Dark Mode</h2>
+    <div class="desc">Full dark variant adapts every screen. The settings screen provides currency selection, notification toggle, and app preferences.</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px;">
+      <div style="display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🌙</div><div><div style="font-size:14px;font-weight:600;color:#fff;">Dark Mode</div><div style="font-size:12px;color:rgba(255,255,255,0.4);">Full system-level dark theme</div></div></div>
+      <div style="display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">💱</div><div><div style="font-size:14px;font-weight:600;color:#fff;">Currency</div><div style="font-size:12px;color:rgba(255,255,255,0.4);">৳ $ € £ ₹ — all supported</div></div></div>
+      <div style="display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🔔</div><div><div style="font-size:14px;font-weight:600;color:#fff;">Reminders</div><div style="font-size:12px;color:rgba(255,255,255,0.4);">Daily spending reminders</div></div></div>
+      <div style="display:flex;align-items:center;gap:12px;"><div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🔒</div><div><div style="font-size:14px;font-weight:600;color:#fff;">Privacy</div><div style="font-size:12px;color:rgba(255,255,255,0.4);">Data stays on-device</div></div></div>
+    </div>
+  </div>
+  <div class="phones">
+    <!-- Light settings -->
+    <div class="phone light" style="height:500px;transform:rotate(-3deg) translateY(10px);">
+      <div class="phone-screen" style="background:#FAFAFA;">
+        <div class="status-bar" style="background:#FAFAFA;color:#111827;"><span>9:41</span><span>100%</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;">
+          <div style="width:30px;height:30px;border-radius:8px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:14px;">‹</div>
+          <div style="font-size:14px;font-weight:700;color:#111827;">Settings</div>
+        </div>
+        <!-- Profile card -->
+        <div style="margin:4px 14px 0;background:rgba(13,148,136,0.08);border-radius:14px;padding:12px;border:1px solid rgba(13,148,136,0.15);display:flex;align-items:center;gap:10px;">
+          <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#0D9488,#0F766E);display:flex;align-items:center;justify-content:center;font-size:20px;">💳</div>
+          <div><div style="font-size:13px;font-weight:700;color:#111827;">My Wallet</div><div style="font-size:11px;color:#6B7280;">Personal expense tracker</div></div>
+        </div>
+        <div style="padding:8px 14px;font-size:9px;font-weight:700;color:#9CA3AF;letter-spacing:0.08em;text-transform:uppercase;">Appearance</div>
+        <div style="margin:0 14px;background:#fff;border-radius:12px;overflow:hidden;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:30px;height:30px;border-radius:8px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:14px;">🌙</div>
+              <div><div style="font-size:12px;font-weight:600;color:#111827;">Dark Mode</div><div style="font-size:10px;color:#6B7280;">Switch to dark theme</div></div>
+            </div>
+            <div style="width:36px;height:20px;border-radius:10px;background:#E5E7EB;position:relative;"><div style="width:16px;height:16px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div></div>
+          </div>
+        </div>
+        <div style="padding:8px 14px;font-size:9px;font-weight:700;color:#9CA3AF;letter-spacing:0.08em;text-transform:uppercase;">Preferences</div>
+        <div style="margin:0 14px;background:#fff;border-radius:12px;overflow:hidden;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #F1F5F9;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:30px;height:30px;border-radius:8px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:14px;">🌐</div>
+              <div><div style="font-size:12px;font-weight:600;color:#111827;">Currency</div><div style="font-size:10px;color:#6B7280;">Bangladeshi Taka (৳)</div></div>
+            </div>
+            <span style="font-size:12px;color:#9CA3AF;">›</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:30px;height:30px;border-radius:8px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:14px;">🔔</div>
+              <div><div style="font-size:12px;font-weight:600;color:#111827;">Reminders</div><div style="font-size:10px;color:#6B7280;">Daily expense reminders</div></div>
+            </div>
+            <div style="width:36px;height:20px;border-radius:10px;background:#0D9488;position:relative;"><div style="width:16px;height:16px;border-radius:50%;background:#fff;position:absolute;top:2px;right:2px;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div></div>
+          </div>
+        </div>
+        <div class="bottom-bar" style="margin-top:auto;background:#FAFAFA;"><div class="home-indicator" style="background:rgba(0,0,0,0.2);"></div></div>
+      </div>
+    </div>
+    <!-- Dark home screen -->
+    <div class="phone" style="height:500px;background:#0F172A;transform:rotate(3deg) translateY(-10px);">
+      <div class="phone-screen" style="background:#0F172A;">
+        <div class="status-bar" style="background:#0F172A;color:#F8FAFC;"><span>9:41</span><span>100%</span></div>
+        <div style="padding:8px 14px 0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:26px;height:26px;border-radius:50%;background:#162032;font-size:12px;color:#F8FAFC;display:flex;align-items:center;justify-content:center;">‹</div>
+              <span style="font-size:13px;font-weight:700;color:#F8FAFC;min-width:90px;text-align:center;">May 2026</span>
+              <div style="width:26px;height:26px;border-radius:50%;background:#162032;font-size:12px;color:#F8FAFC;display:flex;align-items:center;justify-content:center;">›</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <div style="width:30px;height:30px;border-radius:8px;background:#162032;font-size:13px;display:flex;align-items:center;justify-content:center;">🔍</div>
+              <div style="width:30px;height:30px;border-radius:8px;background:#162032;font-size:13px;display:flex;align-items:center;justify-content:center;">⚙️</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <div style="flex:1;border-radius:14px;padding:12px;background:linear-gradient(135deg,#0D9488,#0F766E);">
+              <div style="font-size:9px;color:rgba(255,255,255,0.7);font-weight:600;text-transform:uppercase;margin-bottom:4px;">This Month</div>
+              <div style="font-size:20px;font-weight:800;color:#fff;">৳5,950</div>
+              <div style="font-size:9px;color:rgba(255,255,255,0.5);margin-top:2px;">10 transactions</div>
+            </div>
+            <div style="flex:0.7;border-radius:14px;padding:12px;background:linear-gradient(135deg,#F97316,#EA580C);">
+              <div style="font-size:9px;color:rgba(255,255,255,0.7);font-weight:600;text-transform:uppercase;margin-bottom:4px;">Today</div>
+              <div style="font-size:18px;font-weight:800;color:#fff;">৳650</div>
+              <div style="font-size:9px;color:rgba(255,255,255,0.5);margin-top:2px;">3 items</div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:0 14px;">
+          <div style="font-size:10px;font-weight:600;color:#94A3B8;margin-bottom:6px;">Today · ৳650</div>
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#1E293B;border-radius:10px;margin-bottom:4px;"><div style="width:34px;height:34px;border-radius:9px;background:#F59E0B22;display:flex;align-items:center;justify-content:center;font-size:16px;">🍔</div><div style="flex:1;"><div style="font-size:11px;font-weight:600;color:#F8FAFC;">Lunch at Dhanmondi</div><div style="font-size:10px;color:#94A3B8;">Food</div></div><div style="font-size:12px;font-weight:700;color:#F97316;">-৳320</div></div>
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#1E293B;border-radius:10px;margin-bottom:4px;"><div style="width:34px;height:34px;border-radius:9px;background:#3B82F622;display:flex;align-items:center;justify-content:center;font-size:16px;">🚗</div><div style="flex:1;"><div style="font-size:11px;font-weight:600;color:#F8FAFC;">Uber to office</div><div style="font-size:10px;color:#94A3B8;">Transport</div></div><div style="font-size:12px;font-weight:700;color:#F97316;">-৳180</div></div>
+        </div>
+        <div style="position:absolute;bottom:52px;right:14px;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#14B8A6,#0D9488);display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;">+</div>
+        <div style="height:44px;background:#1E293B;border-top:1px solid #334155;display:flex;align-items:center;justify-content:space-around;position:absolute;bottom:0;left:0;right:0;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:1px;"><span style="font-size:16px;">🏠</span><span style="font-size:8px;font-weight:700;color:#0D9488;">Home</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:1px;"><span style="font-size:16px;opacity:0.5;">📊</span><span style="font-size:8px;color:#94A3B8;">Analytics</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 9 — DESIGN SYSTEM
+════════════════════════════════════════════════════════ -->
+<section id="s9" data-screen-label="09 Design System">
+  <div class="label" style="color:rgba(255,255,255,0.4);">Design System</div>
+  <h2>Colors, Type &amp; Components</h2>
+  <div class="row">
+    <!-- Colors -->
+    <div class="col">
+      <div class="col-title">Color Palette</div>
+      <div class="swatches">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div class="swatch" style="background:#0D9488;"></div><span style="font-size:10px;color:rgba(255,255,255,0.4);">Primary</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div class="swatch" style="background:#F97316;"></div><span style="font-size:10px;color:rgba(255,255,255,0.4);">Expense</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div class="swatch" style="background:#22C55E;"></div><span style="font-size:10px;color:rgba(255,255,255,0.4);">Success</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div class="swatch" style="background:#EF4444;"></div><span style="font-size:10px;color:rgba(255,255,255,0.4);">Danger</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div class="swatch" style="background:#1E293B;border:1px solid rgba(255,255,255,0.1);"></div><span style="font-size:10px;color:rgba(255,255,255,0.4);">Card Dark</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div class="swatch" style="background:#FFFFFF;"></div><span style="font-size:10px;color:rgba(255,255,255,0.4);">Card Light</span></div>
+      </div>
+      <div class="col-title" style="margin-top:16px;">Categories</div>
+      <div class="cat-chips">
+        <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:#F59E0B22;border:1px solid #F59E0B44;"><div style="width:8px;height:8px;border-radius:50%;background:#F59E0B;"></div><span style="font-size:12px;color:#fff;font-weight:500;">Food</span></div>
+        <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:#3B82F622;border:1px solid #3B82F644;"><div style="width:8px;height:8px;border-radius:50%;background:#3B82F6;"></div><span style="font-size:12px;color:#fff;font-weight:500;">Transport</span></div>
+        <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:#EC489922;border:1px solid #EC489944;"><div style="width:8px;height:8px;border-radius:50%;background:#EC4899;"></div><span style="font-size:12px;color:#fff;font-weight:500;">Shopping</span></div>
+        <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:#8B5CF622;border:1px solid #8B5CF644;"><div style="width:8px;height:8px;border-radius:50%;background:#8B5CF6;"></div><span style="font-size:12px;color:#fff;font-weight:500;">Bills</span></div>
+        <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:#F9731622;border:1px solid #F9731644;"><div style="width:8px;height:8px;border-radius:50%;background:#F97316;"></div><span style="font-size:12px;color:#fff;font-weight:500;">Entertainment</span></div>
+        <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:#EF444422;border:1px solid #EF444444;"><div style="width:8px;height:8px;border-radius:50%;background:#EF4444;"></div><span style="font-size:12px;color:#fff;font-weight:500;">Health</span></div>
+        <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:#6B728022;border:1px solid #6B728044;"><div style="width:8px;height:8px;border-radius:50%;background:#6B7280;"></div><span style="font-size:12px;color:#fff;font-weight:500;">Others</span></div>
+      </div>
+    </div>
+    <!-- Typography -->
+    <div class="col">
+      <div class="col-title">Typography — Inter</div>
+      <div class="type-sample" style="font-size:40px;font-weight:800;letter-spacing:-2px;line-height:1;">৳12,500</div>
+      <div class="type-sample" style="font-size:24px;font-weight:700;margin-top:8px;">Screen Title</div>
+      <div class="type-sample" style="font-size:18px;font-weight:600;color:rgba(255,255,255,0.7);margin-top:4px;">Card Heading</div>
+      <div class="type-sample" style="font-size:16px;color:rgba(255,255,255,0.5);margin-top:4px;">Body text for descriptions</div>
+      <div class="type-sample" style="font-size:13px;color:rgba(255,255,255,0.35);margin-top:4px;">CAPTION · LABEL · 0.08EM</div>
+    </div>
+    <!-- Spacing / radius -->
+    <div class="col">
+      <div class="col-title">Component Tokens</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.06);"><span style="font-size:13px;color:rgba(255,255,255,0.5);">Screen padding</span><span style="font-size:13px;font-weight:700;color:#14B8A6;">16px</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.06);"><span style="font-size:13px;color:rgba(255,255,255,0.5);">Card padding</span><span style="font-size:13px;font-weight:700;color:#14B8A6;">16px</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.06);"><span style="font-size:13px;color:rgba(255,255,255,0.5);">Card radius</span><span style="font-size:13px;font-weight:700;color:#14B8A6;">16px</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.06);"><span style="font-size:13px;color:rgba(255,255,255,0.5);">FAB size</span><span style="font-size:13px;font-weight:700;color:#14B8A6;">56px</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.06);"><span style="font-size:13px;color:rgba(255,255,255,0.5);">Nav height</span><span style="font-size:13px;font-weight:700;color:#14B8A6;">64px</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.06);"><span style="font-size:13px;color:rgba(255,255,255,0.5);">List item</span><span style="font-size:13px;font-weight:700;color:#14B8A6;">64px</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.06);"><span style="font-size:13px;color:rgba(255,255,255,0.5);">Min touch</span><span style="font-size:13px;font-weight:700;color:#14B8A6;">48px</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 10 — END
+════════════════════════════════════════════════════════ -->
+<section id="s10" data-screen-label="10 End">
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;">
+    <div class="end-icon">💰</div>
+    <h2>Thank You</h2>
+    <div class="sub">Expense Tracker · iOS &amp; Android · Flutter</div>
+    <div class="cta">Open Interactive Prototype →</div>
+  </div>
+</section>
+
+</deck-stage>
+
+<script type="application/json" id="speaker-notes">
+[
+  "Welcome to the Expense Tracker app design presentation. This is a full-stack mobile UI design for iOS and Android, built in Flutter with a minimal, card-based design language.",
+  "The app is designed around simplicity — four core screens, a clean teal and coral color palette, and a dark mode that adapts all surfaces. We focused on trust and readability for financial data.",
+  "Onboarding introduces the three core value props: track, visualize, and spend smarter. Each slide has a distinct gradient color to create visual progression and delight on first launch.",
+  "The Home Dashboard is the central hub. The month navigator lets users browse history, while the two summary cards give an at-a-glance view of monthly and daily spend. The transaction list is grouped by date with swipe-to-delete and a prominent FAB.",
+  "The Add Expense screen minimizes friction. The large centered amount input focuses attention, category chips are tap-friendly, and the date picker opens as a native-feel bottom sheet. Validation is friendly — never blocking.",
+  "Tapping any transaction opens a detail bottom sheet. It shows the full expense at a glance, and offers Edit and Delete. The delete requires a second tap to confirm, preventing accidental data loss.",
+  "The Analytics screen shows a donut chart animated on entry, a month-over-month percentage change, and a ranked category breakdown with progress bars. All driven by the same transaction data — no separate input needed.",
+  "Settings provides dark mode toggle, currency switching with a bottom sheet picker, notification reminders, and data management. Both light and dark themes are fully realized across all screens.",
+  "The design system uses Inter throughout, a six-color palette with semantic tokens, seven distinct category colors, and consistent spacing: 16px padding, 16px radius, 64px nav height, 56px FAB.",
+  "Thank you. The interactive prototype is available — every screen is clickable and all data flows are real."
+]
+</script>
+</body>
+</html>

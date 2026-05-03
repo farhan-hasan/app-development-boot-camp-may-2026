@@ -16,3 +16,11 @@ IconData getCategoryIcon(String category) {
   );
   return match['icon'] as IconData;
 }
+
+String getCategoryEmoji(String category) {
+  final match = AppConstants.categories.firstWhere(
+    (c) => c['name'] == category,
+    orElse: () => AppConstants.categories.last,
+  );
+  return match['emoji'] as String;
+}

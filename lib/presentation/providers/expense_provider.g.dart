@@ -23,7 +23,7 @@ final monthlyTotalProvider = AutoDisposeFutureProvider<double>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef MonthlyTotalRef = AutoDisposeFutureProviderRef<double>;
-String _$todayTotalHash() => r'105e9daaa76881a95fcd9472e5a36cdfd56025e0';
+String _$todayTotalHash() => r'2588e6513369debef666e8b37e70ecd8f2d3c9f2';
 
 /// See also [todayTotal].
 @ProviderFor(todayTotal)
