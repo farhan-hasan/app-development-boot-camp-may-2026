@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "413892751641",
+    "project_id": "hisabi-63ab4",
+    "storage_bucket": "hisabi-63ab4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:413892751641:android:0ccd206b06cd335f45d588",
+        "android_client_info": {
+          "package_name": "com.farhanhasan.hisabi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSlmCJgFHG5m44jAOQgwd0oe8UM8MXk9g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

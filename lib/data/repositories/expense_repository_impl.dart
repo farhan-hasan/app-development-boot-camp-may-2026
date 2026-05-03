@@ -41,6 +41,6 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   @override
   Future<double> getTotalForMonth(DateTime month) async {
     final expenses = await getExpensesForMonth(month);
-    return expenses.fold(0.0, (sum, e) => sum + e.amount);
+    return expenses.fold<double>(0.0, (acc, e) => acc + e.amount);
   }
 }
