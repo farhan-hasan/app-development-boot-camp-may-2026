@@ -4,11 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hisabi/config/router.dart';
 import 'package:hisabi/config/theme.dart';
+import 'package:hisabi/firebase_options.dart';
 import 'package:hisabi/presentation/providers/expense_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   final prefs = await SharedPreferences.getInstance();
   final onboardingDone = prefs.getBool('onboarding_completed') ?? false;
   runApp(ProviderScope(
