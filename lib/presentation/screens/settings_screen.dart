@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hisabi/config/constants.dart';
 import 'package:hisabi/config/theme.dart';
 import 'package:hisabi/presentation/providers/expense_provider.dart';
+import 'package:hisabi/presentation/widgets/category_form_sheet.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -13,6 +14,7 @@ class SettingsScreen extends ConsumerWidget {
     final colors = context.appColors;
     final themeMode = ref.watch(themeModeProvider);
     final currency = ref.watch(currencyProvider);
+    final customCats = ref.watch(customCategoriesProvider);
     final isDark = themeMode == ThemeMode.dark;
 
     return Scaffold(
@@ -38,9 +40,9 @@ class SettingsScreen extends ConsumerWidget {
             margin: const EdgeInsets.only(top: 8, bottom: 8),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: kPrimary.withOpacity(0.1),
+              color: kPrimary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: kPrimary.withOpacity(0.15)),
+              border: Border.all(color: kPrimary.withValues(alpha: 0.15)),
             ),
             child: Row(
               children: [
@@ -103,12 +105,65 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ]),
 
+          _SectionHeader('CATEGORIES', colors),
+          if (customCats.isEmpty)
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              decoration: BoxDecoration(color: colors.card, borderRadius: BorderRadius.circular(16)),
+              child: Center(
+                child: Text('No custom categories yet', style: TextStyle(fontSize: 13, color: colors.textSec)),
+              ),
+            )
+          else
+            _SettingsCard(
+              colors: colors,
+              children: customCats.asMap().entries.expand((entry) {
+                final i = entry.key;
+                final cat = entry.value;
+                return [
+                  if (i > 0) Divider(color: colors.border, height: 1, indent: 68, endIndent: 16),
+                  _CategorySettingsRow(
+                    cat: cat,
+                    colors: colors,
+                    onEdit: () => showCategoryFormSheet(
+                      context,
+                      initialCategory: cat,
+                      onSave: (updated) =>
+                          ref.read(customCategoriesProvider.notifier).update(cat.name, updated),
+                    ),
+                    onDelete: () => _confirmDeleteCategory(context, ref, cat, colors),
+                  ),
+                ];
+              }).toList(),
+            ),
+
           _SectionHeader('DATA', colors),
           _SettingsCard(colors: colors, children: [
-            _ClearDataRow(colors: colors, ref: ref),
+            _ClearDataRow(colors: colors),
           ]),
 
           const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteCategory(BuildContext context, WidgetRef ref, CustomCategory cat, AppColors colors) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete category?'),
+        content: Text('Remove "${cat.name}"? Existing expenses won\'t be affected.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ref.read(customCategoriesProvider.notifier).remove(cat.name);
+            },
+            child: const Text('Delete', style: TextStyle(color: kDanger)),
+          ),
         ],
       ),
     );
@@ -138,7 +193,7 @@ class SettingsScreen extends ConsumerWidget {
                 leading: Container(
                   width: 40, height: 40,
                   decoration: BoxDecoration(
-                    color: isSelected ? kPrimary.withOpacity(0.1) : colors.cardAlt,
+                    color: isSelected ? kPrimary.withValues(alpha: 0.1) : colors.cardAlt,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   alignment: Alignment.center,
@@ -223,45 +278,109 @@ class _SettingsRow extends StatelessWidget {
   );
 }
 
-class _ClearDataRow extends ConsumerStatefulWidget {
-  const _ClearDataRow({required this.colors, required this.ref});
+class _ClearDataRow extends StatefulWidget {
+  const _ClearDataRow({required this.colors});
   final AppColors colors;
-  final WidgetRef ref;
 
   @override
-  ConsumerState<_ClearDataRow> createState() => _ClearDataRowState();
+  State<_ClearDataRow> createState() => _ClearDataRowState();
 }
 
-class _ClearDataRowState extends ConsumerState<_ClearDataRow> {
-  bool _confirming = false;
+class _ClearDataRowState extends State<_ClearDataRow> {
+  final _confirming = ValueNotifier<bool>(false);
+
+  @override
+  void dispose() {
+    _confirming.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return _SettingsRow(
-      icon: Icons.delete_sweep_outlined,
-      iconBg: kDanger.withOpacity(0.1),
-      label: _confirming ? 'Tap again to confirm' : 'Clear All Data',
-      colors: widget.colors,
-      isDestructive: true,
-      onTap: () {
-        if (_confirming) {
-          setState(() => _confirming = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('All data cleared'),
-              backgroundColor: kDanger,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            ),
-          );
-        } else {
-          setState(() => _confirming = true);
-          Future.delayed(const Duration(seconds: 3), () {
-            if (mounted) setState(() => _confirming = false);
-          });
-        }
+    return ValueListenableBuilder<bool>(
+      valueListenable: _confirming,
+      builder: (context, confirming, _) {
+        return _SettingsRow(
+          icon: Icons.delete_sweep_outlined,
+          iconBg: kDanger.withValues(alpha: 0.1),
+          label: confirming ? 'Tap again to confirm' : 'Clear All Data',
+          colors: widget.colors,
+          isDestructive: true,
+          onTap: () {
+            if (confirming) {
+              _confirming.value = false;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('All data cleared'),
+                  backgroundColor: kDanger,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                ),
+              );
+            } else {
+              _confirming.value = true;
+              Future.delayed(const Duration(seconds: 3), () {
+                if (context.mounted) _confirming.value = false;
+              });
+            }
+          },
+        );
       },
+    );
+  }
+}
+
+class _CategorySettingsRow extends StatelessWidget {
+  const _CategorySettingsRow({
+    required this.cat,
+    required this.colors,
+    required this.onEdit,
+    required this.onDelete,
+  });
+  final CustomCategory cat;
+  final AppColors colors;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 38, height: 38,
+            decoration: BoxDecoration(
+              color: cat.color.withValues(alpha: 0.13),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            alignment: Alignment.center,
+            child: Text(cat.emoji, style: const TextStyle(fontSize: 18)),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(cat.name, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textPrimary)),
+          ),
+          GestureDetector(
+            onTap: onEdit,
+            child: Container(
+              width: 32, height: 32,
+              decoration: BoxDecoration(color: colors.cardAlt, borderRadius: BorderRadius.circular(8)),
+              child: Icon(Icons.edit_outlined, size: 15, color: colors.textSec),
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: onDelete,
+            child: Container(
+              width: 32, height: 32,
+              decoration: BoxDecoration(color: kDanger.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+              child: Icon(Icons.delete_outline, size: 15, color: kDanger),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

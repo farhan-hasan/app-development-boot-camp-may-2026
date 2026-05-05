@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // Brand tokens
 const Color kPrimary = Color(0xFF0D9488);
@@ -85,6 +86,7 @@ extension AppColorsX on BuildContext {
 
 ThemeData lightTheme = ThemeData(
   useMaterial3: true,
+  textTheme: GoogleFonts.interTextTheme(ThemeData(brightness: Brightness.light).textTheme),
   colorScheme: const ColorScheme.light(
     primary: kPrimary,
     primaryContainer: Color(0xFFCCFBF1),
@@ -122,10 +124,10 @@ ThemeData lightTheme = ThemeData(
     height: 64,
     elevation: 8,
     shadowColor: Colors.black12,
-    indicatorColor: Color(0x1F0D9488),
+    indicatorColor: const Color(0x1F0D9488),
     labelTextStyle: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected)
-        ? const TextStyle(color: kPrimary, fontSize: 12, fontWeight: FontWeight.w600)
-        : const TextStyle(color: Color(0xFF6B7280), fontSize: 12)),
+        ? GoogleFonts.inter(color: kPrimary, fontSize: 12, fontWeight: FontWeight.w600)
+        : GoogleFonts.inter(color: const Color(0xFF6B7280), fontSize: 12)),
     iconTheme: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected)
         ? const IconThemeData(color: kPrimary, size: 22)
         : const IconThemeData(color: Color(0xFF6B7280), size: 22)),
@@ -134,6 +136,7 @@ ThemeData lightTheme = ThemeData(
 
 ThemeData darkTheme = ThemeData(
   useMaterial3: true,
+  textTheme: GoogleFonts.interTextTheme(ThemeData(brightness: Brightness.dark).textTheme),
   colorScheme: const ColorScheme.dark(
     primary: kPrimary,
     primaryContainer: kPrimaryDark,
@@ -170,10 +173,10 @@ ThemeData darkTheme = ThemeData(
     height: 64,
     elevation: 8,
     shadowColor: Colors.black38,
-    indicatorColor: Color(0x330D9488),
+    indicatorColor: const Color(0x330D9488),
     labelTextStyle: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected)
-        ? const TextStyle(color: kPrimary, fontSize: 12, fontWeight: FontWeight.w600)
-        : const TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
+        ? GoogleFonts.inter(color: kPrimary, fontSize: 12, fontWeight: FontWeight.w600)
+        : GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 12)),
     iconTheme: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected)
         ? const IconThemeData(color: kPrimary, size: 22)
         : const IconThemeData(color: Color(0xFF94A3B8), size: 22)),

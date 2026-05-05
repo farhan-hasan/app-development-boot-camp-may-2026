@@ -27,13 +27,16 @@ class SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatted = NumberFormat.currency(symbol: currency, decimalDigits: 0).format(amount);
+    final formatted = NumberFormat.currency(
+      symbol: currency,
+      decimalDigits: 0,
+    ).format(amount);
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -48,6 +51,7 @@ class SummaryCard extends StatelessWidget {
           ],
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -64,7 +68,7 @@ class SummaryCard extends StatelessWidget {
               formatted,
               style: TextStyle(
                 fontSize: amountFontSize,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.bold,
                 color: Colors.white,
                 letterSpacing: -0.5,
               ),
@@ -74,10 +78,7 @@ class SummaryCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               subtext,
-              style: const TextStyle(
-                fontSize: 11,
-                color: Color(0x99FFFFFF),
-              ),
+              style: const TextStyle(fontSize: 11, color: Color(0x99FFFFFF)),
             ),
           ],
         ),

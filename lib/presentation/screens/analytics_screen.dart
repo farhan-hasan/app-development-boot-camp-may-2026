@@ -51,7 +51,7 @@ class AnalyticsScreen extends ConsumerWidget {
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [kPrimary, kPrimaryDark]),
                     borderRadius: BorderRadius.circular(20),
-                    boxShadow: [BoxShadow(color: kPrimary.withOpacity(0.35), blurRadius: 24, offset: const Offset(0, 8))],
+                    boxShadow: [BoxShadow(color: kPrimary.withValues(alpha: 0.35), blurRadius: 24, offset: const Offset(0, 8))],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,7 +91,7 @@ class AnalyticsScreen extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: colors.card,
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4))],
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 4))],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,7 +145,7 @@ class AnalyticsScreen extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: colors.card,
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4))],
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 4))],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

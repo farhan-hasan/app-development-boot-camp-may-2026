@@ -10,8 +10,9 @@ void showExpenseDetailSheet(
   BuildContext context,
   Expense expense,
   String currency,
-  VoidCallback onDelete,
-) {
+  VoidCallback onDelete, {
+  List<Map<String, dynamic>> extraCategories = const [],
+}) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -20,6 +21,7 @@ void showExpenseDetailSheet(
       expense: expense,
       currency: currency,
       onDelete: onDelete,
+      extraCategories: extraCategories,
     ),
   );
 }
@@ -29,23 +31,31 @@ class _ExpenseDetailSheet extends StatefulWidget {
     required this.expense,
     required this.currency,
     required this.onDelete,
+    this.extraCategories = const [],
   });
   final Expense expense;
   final String currency;
   final VoidCallback onDelete;
+  final List<Map<String, dynamic>> extraCategories;
 
   @override
   State<_ExpenseDetailSheet> createState() => _ExpenseDetailSheetState();
 }
 
 class _ExpenseDetailSheetState extends State<_ExpenseDetailSheet> {
-  bool _confirmingDelete = false;
+  final _confirmingDelete = ValueNotifier<bool>(false);
+
+  @override
+  void dispose() {
+    _confirmingDelete.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final catColor = getCategoryColor(widget.expense.category);
-    final catEmoji = getCategoryEmoji(widget.expense.category);
+    final catColor = getCategoryColor(widget.expense.category, extra: widget.extraCategories);
+    final catEmoji = getCategoryEmoji(widget.expense.category, extra: widget.extraCategories);
     final amount = NumberFormat.currency(symbol: widget.currency, decimalDigits: 0).format(widget.expense.amount);
 
     return Container(
@@ -57,19 +67,17 @@ class _ExpenseDetailSheetState extends State<_ExpenseDetailSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Drag handle
           const SizedBox(height: 12),
           Container(width: 36, height: 4, decoration: BoxDecoration(color: colors.border, borderRadius: BorderRadius.circular(2))),
           const SizedBox(height: 24),
 
-          // Icon bubble
           Container(
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: catColor.withOpacity(0.13),
+              color: catColor.withValues(alpha: 0.13),
               borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: catColor.withOpacity(0.2), width: 2),
+              border: Border.all(color: catColor.withValues(alpha: 0.2), width: 2),
             ),
             alignment: Alignment.center,
             child: Text(catEmoji, style: const TextStyle(fontSize: 34)),
@@ -81,13 +89,12 @@ class _ExpenseDetailSheetState extends State<_ExpenseDetailSheet> {
           Text(widget.expense.title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary)),
           const SizedBox(height: 8),
 
-          // Category badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: catColor.withOpacity(0.1),
+              color: catColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: catColor.withOpacity(0.2)),
+              border: Border.all(color: catColor.withValues(alpha: 0.2)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -100,7 +107,6 @@ class _ExpenseDetailSheetState extends State<_ExpenseDetailSheet> {
           ),
           const SizedBox(height: 20),
 
-          // Detail rows
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
@@ -117,42 +123,46 @@ class _ExpenseDetailSheetState extends State<_ExpenseDetailSheet> {
           ),
           const SizedBox(height: 20),
 
-          // Action buttons
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Row(
               children: [
                 Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      if (_confirmingDelete) {
-                        Navigator.pop(context);
-                        widget.onDelete();
-                      } else {
-                        setState(() => _confirmingDelete = true);
-                        Future.delayed(const Duration(seconds: 3), () {
-                          if (mounted) setState(() => _confirmingDelete = false);
-                        });
-                      }
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: _confirmingDelete ? kDanger : colors.cardAlt,
-                        borderRadius: BorderRadius.circular(14),
-                        border: _confirmingDelete ? null : Border.all(color: kDanger.withOpacity(0.3)),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        _confirmingDelete ? 'Tap to confirm' : 'Delete',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: _confirmingDelete ? Colors.white : kDanger,
+                  child: ValueListenableBuilder<bool>(
+                    valueListenable: _confirmingDelete,
+                    builder: (context, confirming, _) {
+                      return GestureDetector(
+                        onTap: () {
+                          if (confirming) {
+                            Navigator.pop(context);
+                            widget.onDelete();
+                          } else {
+                            _confirmingDelete.value = true;
+                            Future.delayed(const Duration(seconds: 3), () {
+                              if (mounted) _confirmingDelete.value = false;
+                            });
+                          }
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: confirming ? kDanger : colors.cardAlt,
+                            borderRadius: BorderRadius.circular(14),
+                            border: confirming ? null : Border.all(color: kDanger.withValues(alpha: 0.3)),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            confirming ? 'Tap to confirm' : 'Delete',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: confirming ? Colors.white : kDanger,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -168,7 +178,7 @@ class _ExpenseDetailSheetState extends State<_ExpenseDetailSheet> {
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(colors: [kPrimaryLight, kPrimary]),
                         borderRadius: BorderRadius.circular(14),
-                        boxShadow: [BoxShadow(color: kPrimary.withOpacity(0.35), blurRadius: 20, offset: const Offset(0, 6))],
+                        boxShadow: [BoxShadow(color: kPrimary.withValues(alpha: 0.35), blurRadius: 20, offset: const Offset(0, 6))],
                       ),
                       alignment: Alignment.center,
                       child: const Row(

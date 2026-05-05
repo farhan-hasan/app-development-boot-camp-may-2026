@@ -5,86 +5,32 @@ import 'package:hisabi/config/constants.dart';
 import 'package:hisabi/config/theme.dart';
 import 'package:hisabi/presentation/providers/expense_provider.dart';
 
-class OnboardingScreen extends ConsumerStatefulWidget {
+class OnboardingScreen extends ConsumerWidget {
   const OnboardingScreen({super.key});
 
   @override
-  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
-}
-
-class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
-  int _index = 0;
-  final _pageCtrl = PageController();
-
-  void _goTo(int i) {
-    _pageCtrl.animateToPage(i, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
-    setState(() => _index = i);
-  }
-
-  Future<void> _complete() async {
-    await ref.read(onboardingCompletedProvider.notifier).complete();
-    if (mounted) context.go('/');
-  }
-
-  @override
-  void dispose() {
-    _pageCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final index = ref.watch(onboardingPageProvider);
     final slides = AppConstants.onboardingSlides;
-    final slide = slides[_index];
+    final slide = slides[index];
     final accent = slide['accent'] as Color;
+
+    void goTo(int i) => ref.read(onboardingPageProvider.notifier).state = i;
+
+    Future<void> complete() async {
+      await ref.read(onboardingCompletedProvider.notifier).complete();
+      if (context.mounted) context.go('/');
+    }
 
     return Scaffold(
       body: Column(
         children: [
-          // Hero area (~65%)
+          // Hero area (~65%) — AnimatedSwitcher gives crossfade on slide change
           Expanded(
             flex: 65,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: List<Color>.from(slide['gradient'] as List),
-                ),
-              ),
-              child: Stack(
-                children: [
-                  Positioned(top: -40, left: -60, child: _Circle(opacity: 0.06)),
-                  Positioned(bottom: -60, right: -40, child: _Circle(opacity: 0.06, size: 240)),
-                  SafeArea(
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _FloatingEmoji(emoji: slide['emoji'] as String),
-                            const SizedBox(height: 24),
-                            Text(
-                              slide['title'] as String,
-                              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: Colors.white, height: 1.25),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              slide['description'] as String,
-                              style: const TextStyle(fontSize: 15, color: Color(0xCCFFFFFF), height: 1.6),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 400),
+              child: _HeroArea(key: ValueKey(index), slide: slide),
             ),
           ),
 
@@ -100,9 +46,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(3, (i) {
-                      final active = i == _index;
+                      final active = i == index;
                       return GestureDetector(
-                        onTap: () => _goTo(i),
+                        onTap: () => goTo(i),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
                           margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -119,23 +65,74 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   const Spacer(),
                   Row(
                     children: [
-                      if (_index < 2) ...[
+                      if (index < 2) ...[
                         Expanded(
-                          child: _OBButton(label: 'Skip', isSecondary: true, onTap: _complete),
+                          child: _OBButton(label: 'Skip', isSecondary: true, onTap: complete),
                         ),
                         const SizedBox(width: 12),
                       ],
                       Expanded(
-                        flex: _index < 2 ? 2 : 1,
+                        flex: index < 2 ? 2 : 1,
                         child: _OBButton(
-                          label: _index < 2 ? 'Next' : 'Get Started',
+                          label: index < 2 ? 'Next' : 'Get Started',
                           accent: accent,
-                          onTap: _index < 2 ? () => _goTo(_index + 1) : _complete,
+                          onTap: index < 2 ? () => goTo(index + 1) : complete,
                         ),
                       ),
                     ],
                   ),
                 ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroArea extends StatelessWidget {
+  const _HeroArea({super.key, required this.slide});
+  final Map<String, dynamic> slide;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 500),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: List<Color>.from(slide['gradient'] as List),
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(top: -40, left: -60, child: _Circle(opacity: 0.06)),
+          Positioned(bottom: -60, right: -40, child: _Circle(opacity: 0.06, size: 240)),
+          SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _FloatingEmoji(emoji: slide['emoji'] as String),
+                    const SizedBox(height: 24),
+                    Text(
+                      slide['title'] as String,
+                      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: Colors.white, height: 1.25),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      slide['description'] as String,
+                      style: const TextStyle(fontSize: 15, color: Color(0xCCFFFFFF), height: 1.6),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -153,7 +150,7 @@ class _Circle extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     width: size, height: size,
-    decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(opacity)),
+    decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: opacity)),
   );
 }
 
@@ -213,9 +210,9 @@ class _OBButton extends StatelessWidget {
       child: Container(
         height: 50,
         decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [c.withOpacity(0.85), c]),
+          gradient: LinearGradient(colors: [c.withValues(alpha: 0.85), c]),
           borderRadius: BorderRadius.circular(14),
-          boxShadow: [BoxShadow(color: c.withOpacity(0.4), blurRadius: 24, offset: const Offset(0, 8))],
+          boxShadow: [BoxShadow(color: c.withValues(alpha: 0.4), blurRadius: 24, offset: const Offset(0, 8))],
         ),
         alignment: Alignment.center,
         child: Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),

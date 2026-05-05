@@ -20,8 +20,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  bool _searchMode = false;
-  bool _showAll = false;
   final _searchCtrl = TextEditingController();
 
   @override
@@ -37,14 +35,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     await ref.read(expenseListProvider.future);
   }
 
-  List<dynamic> _buildFlatList(List<Expense> expenses) {
-    final q = _searchCtrl.text.toLowerCase();
-    final filtered = q.isEmpty
+  List<dynamic> _buildFlatList(
+    List<Expense> expenses,
+    String query,
+    bool showAll,
+  ) {
+    final filtered = query.isEmpty
         ? expenses
-        : expenses.where((e) =>
-            e.title.toLowerCase().contains(q) ||
-            e.category.toLowerCase().contains(q)).toList();
-    final limited = _showAll ? filtered : filtered.take(10).toList();
+        : expenses
+              .where(
+                (e) =>
+                    e.title.toLowerCase().contains(query.toLowerCase()) ||
+                    e.category.toLowerCase().contains(query.toLowerCase()),
+              )
+              .toList();
+    final limited = showAll ? filtered : filtered.take(10).toList();
 
     final Map<String, List<Expense>> grouped = {};
     for (final e in limited) {
@@ -64,7 +69,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final date = DateTime.parse(key);
     final now = DateTime.now();
     if (isSameDay(date, now)) return 'Today';
-    if (isSameDay(date, now.subtract(const Duration(days: 1)))) return 'Yesterday';
+    if (isSameDay(date, now.subtract(const Duration(days: 1))))
+      return 'Yesterday';
     return DateFormat('MMM d, yyyy').format(date);
   }
 
@@ -72,9 +78,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     double total = 0;
     bool found = false;
     for (final item in flat) {
-      if (item is String && item == dateKey) { found = true; continue; }
+      if (item is String && item == dateKey) {
+        found = true;
+        continue;
+      }
       if (found) {
-        if (item is Expense) { total += item.amount; } else { break; }
+        if (item is Expense) {
+          total += item.amount;
+        } else {
+          break;
+        }
       }
     }
     return total;
@@ -88,6 +101,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final monthlyAsync = ref.watch(monthlyTotalProvider);
     final todayAsync = ref.watch(todayTotalProvider);
     final selectedMonth = ref.watch(selectedMonthProvider);
+    final searchMode = ref.watch(searchModeProvider);
+    final showAll = ref.watch(showAllTransactionsProvider);
+    final query = ref.watch(searchQueryProvider);
+    final extraCategories = ref
+        .watch(customCategoriesProvider)
+        .map((c) => c.toMap())
+        .toList();
 
     return RefreshIndicator(
       color: kPrimary,
@@ -101,45 +121,54 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               bottom: false,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: _searchMode ? _buildSearchBar(colors) : _buildHeaderRow(context, colors, selectedMonth),
+                child: searchMode
+                    ? _buildSearchBar(colors, query)
+                    : _buildHeaderRow(context, colors, selectedMonth),
               ),
             ),
           ),
 
           // ── Summary cards ──
-          if (!_searchMode)
+          if (!searchMode)
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: SummaryCard(
-                        label: 'This Month',
-                        amount: monthlyAsync.valueOrNull ?? 0,
-                        subtext: DateFormat('MMMM yyyy').format(selectedMonth),
-                        gradientColors: const [kPrimary, kPrimaryDark],
-                        shadowColor: Color(0x440D9488),
-                        currency: currency,
-                        onTap: () => context.go('/analytics'),
+                child: IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: SummaryCard(
+                          label: 'This Month',
+                          amount: monthlyAsync.valueOrNull ?? 0,
+                          subtext: DateFormat(
+                            'MMMM yyyy',
+                          ).format(selectedMonth),
+                          gradientColors: const [kPrimary, kPrimaryDark],
+                          shadowColor: const Color(0x440D9488),
+                          currency: currency,
+                          onTap: () => context.go('/analytics'),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      flex: 2,
-                      child: SummaryCard(
-                        label: 'Today',
-                        amount: todayAsync.valueOrNull ?? 0,
-                        subtext: DateFormat('MMM d').format(DateTime.now()),
-                        gradientColors: const [Color(0xFFF97316), Color(0xFFEA580C)],
-                        shadowColor: Color(0x59F97316),
-                        currency: currency,
-                        amountFontSize: 22,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: SummaryCard(
+                          label: 'Today',
+                          amount: todayAsync.valueOrNull ?? 0,
+                          subtext: DateFormat('MMM d').format(DateTime.now()),
+                          gradientColors: const [
+                            Color(0xFFF97316),
+                            Color(0xFFEA580C),
+                          ],
+                          shadowColor: const Color(0x59F97316),
+                          currency: currency,
+                          //amountFontSize: 22,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -151,15 +180,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: expensesAsync.when(
                 data: (data) => Row(
                   children: [
-                    Text('Recent Transactions',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+                    Text(
+                      'Recent Transactions',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: colors.textPrimary,
+                      ),
+                    ),
                     const Spacer(),
                     if (data.length > 10)
                       GestureDetector(
-                        onTap: () => setState(() => _showAll = !_showAll),
+                        onTap: () =>
+                            ref
+                                    .read(showAllTransactionsProvider.notifier)
+                                    .state =
+                                !showAll,
                         child: Text(
-                          _showAll ? 'Show Less' : 'See All',
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: kPrimary),
+                          showAll ? 'Show Less' : 'See All',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: kPrimary,
+                          ),
                         ),
                       ),
                   ],
@@ -173,10 +216,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           // ── Transaction list ──
           expensesAsync.when(
             data: (data) {
-              final flat = _buildFlatList(data);
+              final flat = _buildFlatList(data, query, showAll);
               if (flat.isEmpty) {
                 return SliverFillRemaining(child: EmptyState());
               }
+              int expenseIndex = 0;
               return SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
                 sliver: SliverList.builder(
@@ -192,22 +236,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       );
                     }
                     final expense = item as Expense;
+                    final animIdx = expenseIndex++;
                     return ExpenseListItem(
+                      key: ValueKey(expense.id),
                       expense: expense,
                       currency: currency,
-                      onDelete: () => ref.read(expenseListProvider.notifier).deleteExpense(expense.id),
+                      animationIndex: animIdx,
+                      extraCategories: extraCategories,
+                      onDelete: () => ref
+                          .read(expenseListProvider.notifier)
+                          .deleteExpense(expense.id),
                       onTap: () => showExpenseDetailSheet(
                         context,
                         expense,
                         currency,
-                        () => ref.read(expenseListProvider.notifier).deleteExpense(expense.id),
+                        () => ref
+                            .read(expenseListProvider.notifier)
+                            .deleteExpense(expense.id),
+                        extraCategories: extraCategories,
                       ),
                     );
                   },
                 ),
               );
             },
-            loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: kPrimary))),
+            loading: () => const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator(color: kPrimary)),
+            ),
             error: (err, _) => SliverFillRemaining(
               child: Center(
                 child: Column(
@@ -215,7 +270,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   children: [
                     Icon(Icons.error_outline, size: 48, color: colors.textSec),
                     const SizedBox(height: 12),
-                    Text('Failed to load expenses', style: TextStyle(color: colors.textSec)),
+                    Text(
+                      'Failed to load expenses',
+                      style: TextStyle(color: colors.textSec),
+                    ),
                     const SizedBox(height: 8),
                     TextButton(onPressed: _refresh, child: const Text('Retry')),
                   ],
@@ -228,38 +286,59 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildHeaderRow(BuildContext context, AppColors colors, DateTime month) {
+  Widget _buildHeaderRow(
+    BuildContext context,
+    AppColors colors,
+    DateTime month,
+  ) {
     return Row(
       children: [
         const MonthSelector(),
         const Spacer(),
-        _IconBtn(icon: Icons.search_outlined, onTap: () => setState(() => _searchMode = true)),
+        _IconBtn(
+          icon: Icons.search_outlined,
+          onTap: () => ref.read(searchModeProvider.notifier).state = true,
+        ),
         const SizedBox(width: 8),
-        _IconBtn(icon: Icons.settings_outlined, onTap: () => context.push('/settings')),
+        _IconBtn(
+          icon: Icons.settings_outlined,
+          onTap: () => context.push('/settings'),
+        ),
       ],
     );
   }
 
-  Widget _buildSearchBar(AppColors colors) {
+  Widget _buildSearchBar(AppColors colors, String query) {
     return Row(
       children: [
         Expanded(
           child: Container(
             height: 40,
-            decoration: BoxDecoration(color: colors.cardAlt, borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(
+              color: colors.cardAlt,
+              borderRadius: BorderRadius.circular(10),
+            ),
             child: TextField(
               controller: _searchCtrl,
               autofocus: true,
-              onChanged: (_) => setState(() {}),
+              onChanged: (v) =>
+                  ref.read(searchQueryProvider.notifier).state = v,
               style: TextStyle(fontSize: 14, color: colors.textPrimary),
               decoration: InputDecoration(
                 hintText: 'Search expenses...',
                 hintStyle: TextStyle(color: colors.textSec, fontSize: 14),
                 prefixIcon: Icon(Icons.search, size: 18, color: colors.textSec),
-                suffixIcon: _searchCtrl.text.isNotEmpty
+                suffixIcon: query.isNotEmpty
                     ? GestureDetector(
-                        onTap: () { _searchCtrl.clear(); setState(() {}); },
-                        child: Icon(Icons.close, size: 18, color: colors.textSec),
+                        onTap: () {
+                          _searchCtrl.clear();
+                          ref.read(searchQueryProvider.notifier).state = '';
+                        },
+                        child: Icon(
+                          Icons.close,
+                          size: 18,
+                          color: colors.textSec,
+                        ),
                       )
                     : null,
                 border: InputBorder.none,
@@ -273,8 +352,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         const SizedBox(width: 10),
         GestureDetector(
-          onTap: () { _searchCtrl.clear(); setState(() => _searchMode = false); },
-          child: Text('Cancel', style: TextStyle(fontSize: 14, color: kPrimary, fontWeight: FontWeight.w500)),
+          onTap: () {
+            _searchCtrl.clear();
+            ref.read(searchQueryProvider.notifier).state = '';
+            ref.read(searchModeProvider.notifier).state = false;
+          },
+          child: Text(
+            'Cancel',
+            style: TextStyle(
+              fontSize: 14,
+              color: kPrimary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
       ],
     );
@@ -290,15 +380,24 @@ class _IconBtn extends StatelessWidget {
   Widget build(BuildContext context) => GestureDetector(
     onTap: onTap,
     child: Container(
-      width: 36, height: 36,
-      decoration: BoxDecoration(color: context.appColors.cardAlt, borderRadius: BorderRadius.circular(10)),
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        color: context.appColors.cardAlt,
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: Icon(icon, size: 20, color: context.appColors.textPrimary),
     ),
   );
 }
 
 class _DateGroupHeader extends StatelessWidget {
-  const _DateGroupHeader({required this.label, required this.total, required this.currency, required this.colors});
+  const _DateGroupHeader({
+    required this.label,
+    required this.total,
+    required this.currency,
+    required this.colors,
+  });
   final String label;
   final double total;
   final String currency;
@@ -306,14 +405,28 @@ class _DateGroupHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatted = NumberFormat.currency(symbol: currency, decimalDigits: 0).format(total);
+    final formatted = NumberFormat.currency(
+      symbol: currency,
+      decimalDigits: 0,
+    ).format(total);
     return Padding(
       padding: const EdgeInsets.only(top: 16, bottom: 8),
       child: Row(
         children: [
-          Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.textSec, letterSpacing: 0.4)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: colors.textSec,
+              letterSpacing: 0.4,
+            ),
+          ),
           const Spacer(),
-          Text(formatted, style: TextStyle(fontSize: 12, color: colors.textSec)),
+          Text(
+            formatted,
+            style: TextStyle(fontSize: 12, color: colors.textSec),
+          ),
         ],
       ),
     );
