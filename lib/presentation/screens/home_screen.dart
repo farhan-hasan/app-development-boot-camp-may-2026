@@ -69,8 +69,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final date = DateTime.parse(key);
     final now = DateTime.now();
     if (isSameDay(date, now)) return 'Today';
-    if (isSameDay(date, now.subtract(const Duration(days: 1))))
-      return 'Yesterday';
+    if (isSameDay(date, now.subtract(const Duration(days: 1)))) return 'Yesterday';
     return DateFormat('MMM d, yyyy').format(date);
   }
 
@@ -260,9 +259,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               );
             },
-            loading: () => const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator(color: kPrimary)),
-            ),
+            loading: () => _SkeletonList(colors: colors),
             error: (err, _) => SliverFillRemaining(
               child: Center(
                 child: Column(
@@ -428,6 +425,59 @@ class _DateGroupHeader extends StatelessWidget {
             style: TextStyle(fontSize: 12, color: colors.textSec),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SkeletonList extends StatelessWidget {
+  const _SkeletonList({required this.colors});
+  final AppColors colors;
+
+  Widget _box(double w, double h) => Container(
+        width: w,
+        height: h,
+        decoration: BoxDecoration(color: colors.cardAlt, borderRadius: BorderRadius.circular(4)),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+      sliver: SliverList.builder(
+        itemCount: 6,
+        itemBuilder: (_, __) => Container(
+          margin: const EdgeInsets.only(bottom: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(color: colors.card, borderRadius: BorderRadius.circular(12)),
+          child: Row(
+            children: [
+              Container(
+                width: 44, height: 44,
+                decoration: BoxDecoration(color: colors.cardAlt, borderRadius: BorderRadius.circular(12)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _box(120, 12),
+                    const SizedBox(height: 6),
+                    _box(80, 10),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _box(60, 12),
+                  const SizedBox(height: 6),
+                  _box(40, 10),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

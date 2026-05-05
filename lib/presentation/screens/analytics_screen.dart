@@ -17,11 +17,12 @@ class AnalyticsScreen extends ConsumerWidget {
     final currency = ref.watch(currencyProvider);
     final expensesAsync = ref.watch(expenseListProvider);
     final monthlyAsync = ref.watch(monthlyTotalProvider);
+    final extraCategories = ref.watch(customCategoriesProvider).map((c) => c.toMap()).toList();
 
     return expensesAsync.when(
       data: (expenses) {
         final total = monthlyAsync.valueOrNull ?? 0;
-        final breakdown = _buildBreakdown(expenses);
+        final breakdown = _buildBreakdown(expenses, extraCategories);
 
         return CustomScrollView(
           slivers: [
@@ -101,31 +102,34 @@ class AnalyticsScreen extends ConsumerWidget {
                         const SizedBox(height: 20),
                         SizedBox(
                           height: 200,
-                          child: PieChart(
-                            PieChartData(
-                              sectionsSpace: 2,
-                              centerSpaceRadius: 55,
-                              sections: breakdown.map((cat) {
-                                final pct = total > 0 ? (cat.amount / total) : 0.0;
-                                return PieChartSectionData(
-                                  color: cat.color,
-                                  value: cat.amount,
-                                  title: pct >= 0.08 ? '${(pct * 100).round()}%' : '',
-                                  titleStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
-                                  radius: 55,
-                                );
-                              }).toList(),
-                            ),
-                          ),
-                        ),
-                        // Center label overlay handled by centering a Stack
-                        Center(
-                          child: Column(
+                          child: Stack(
+                            alignment: Alignment.center,
                             children: [
-                              Text('Total', style: TextStyle(fontSize: 11, color: colors.textSec)),
-                              Text(
-                                NumberFormat.currency(symbol: currency, decimalDigits: 0).format(total),
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: colors.textPrimary),
+                              PieChart(
+                                PieChartData(
+                                  sectionsSpace: 2,
+                                  centerSpaceRadius: 55,
+                                  sections: breakdown.map((cat) {
+                                    final pct = total > 0 ? (cat.amount / total) : 0.0;
+                                    return PieChartSectionData(
+                                      color: cat.color,
+                                      value: cat.amount,
+                                      title: pct >= 0.08 ? '${(pct * 100).round()}%' : '',
+                                      titleStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
+                                      radius: 55,
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('Total', style: TextStyle(fontSize: 11, color: colors.textSec)),
+                                  Text(
+                                    NumberFormat.currency(symbol: currency, decimalDigits: 0).format(total),
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: colors.textPrimary),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -171,13 +175,18 @@ class AnalyticsScreen extends ConsumerWidget {
     );
   }
 
-  List<_CategoryData> _buildBreakdown(List<Expense> expenses) {
+  List<_CategoryData> _buildBreakdown(List<Expense> expenses, List<Map<String, dynamic>> extra) {
     final Map<String, double> totals = {};
     for (final e in expenses) {
       totals[e.category] = (totals[e.category] ?? 0) + e.amount;
     }
     final list = totals.entries
-        .map((e) => _CategoryData(name: e.key, amount: e.value, color: getCategoryColor(e.key), emoji: getCategoryEmoji(e.key)))
+        .map((e) => _CategoryData(
+              name: e.key,
+              amount: e.value,
+              color: getCategoryColor(e.key, extra: extra),
+              emoji: getCategoryEmoji(e.key, extra: extra),
+            ))
         .toList()
       ..sort((a, b) => b.amount.compareTo(a.amount));
     return list;
