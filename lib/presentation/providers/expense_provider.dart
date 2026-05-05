@@ -101,6 +101,11 @@ class CustomCategoriesNotifier extends StateNotifier<List<CustomCategory>> {
     await _persist();
   }
 
+  Future<void> clearAll() async {
+    state = [];
+    await _persist();
+  }
+
   Future<void> _persist() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(
@@ -136,6 +141,11 @@ class ExpenseList extends _$ExpenseList {
       state = AsyncData(current.where((e) => e.id != id).toList());
     }
     await ref.read(expenseRepositoryProvider).deleteExpense(id);
+  }
+
+  Future<void> clearAll() async {
+    state = const AsyncData([]);
+    await ref.read(expenseRepositoryProvider).deleteAll();
   }
 }
 

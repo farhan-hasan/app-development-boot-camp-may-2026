@@ -39,6 +39,16 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   }
 
   @override
+  Future<void> deleteAll() async {
+    final snapshot = await _collection.get();
+    final batch = _firestore.batch();
+    for (final doc in snapshot.docs) {
+      batch.delete(doc.reference);
+    }
+    await batch.commit();
+  }
+
+  @override
   Future<double> getTotalForMonth(DateTime month) async {
     final expenses = await getExpensesForMonth(month);
     return expenses.fold<double>(0.0, (acc, e) => acc + e.amount);

@@ -278,15 +278,15 @@ class _SettingsRow extends StatelessWidget {
   );
 }
 
-class _ClearDataRow extends StatefulWidget {
+class _ClearDataRow extends ConsumerStatefulWidget {
   const _ClearDataRow({required this.colors});
   final AppColors colors;
 
   @override
-  State<_ClearDataRow> createState() => _ClearDataRowState();
+  ConsumerState<_ClearDataRow> createState() => _ClearDataRowState();
 }
 
-class _ClearDataRowState extends State<_ClearDataRow> {
+class _ClearDataRowState extends ConsumerState<_ClearDataRow> {
   final _confirming = ValueNotifier<bool>(false);
 
   @override
@@ -306,18 +306,22 @@ class _ClearDataRowState extends State<_ClearDataRow> {
           label: confirming ? 'Tap again to confirm' : 'Clear All Data',
           colors: widget.colors,
           isDestructive: true,
-          onTap: () {
+          onTap: () async {
             if (confirming) {
               _confirming.value = false;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('All data cleared'),
-                  backgroundColor: kDanger,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                ),
-              );
+              await ref.read(expenseListProvider.notifier).clearAll();
+              await ref.read(customCategoriesProvider.notifier).clearAll();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('All data cleared'),
+                    backgroundColor: kDanger,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  ),
+                );
+              }
             } else {
               _confirming.value = true;
               Future.delayed(const Duration(seconds: 3), () {
