@@ -53,11 +53,11 @@ class SettingsScreen extends ConsumerWidget {
                 Container(
                   width: 52, height: 52,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [kPrimaryLight, kPrimary]),
+                    color: kPrimary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   alignment: Alignment.center,
-                  child: const Text('💳', style: TextStyle(fontSize: 24)),
+                  child: Image.asset('assets/icon/app_icon.png', width: 34, height: 34),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -91,6 +91,7 @@ class SettingsScreen extends ConsumerWidget {
               iconBg: colors.cardAlt,
               label: 'Dark Mode',
               colors: colors,
+              onTap: () => ref.read(themeModeProvider.notifier).toggle(),
               trailing: _Toggle(
                 value: isDark,
                 onChanged: (_) => ref.read(themeModeProvider.notifier).toggle(),
@@ -299,6 +300,7 @@ class _SettingsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) => GestureDetector(
     onTap: onTap,
+    behavior: HitTestBehavior.opaque,
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(

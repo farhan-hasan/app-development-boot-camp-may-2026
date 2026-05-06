@@ -73,17 +73,26 @@ class AnalyticsScreen extends ConsumerWidget {
             ),
 
             if (expenses.isEmpty) ...[
-              const SliverFillRemaining(
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('📊', style: TextStyle(fontSize: 64)),
-                      SizedBox(height: 16),
-                      Text('No data for this month', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                    ],
-                  ),
-                ),
+              SliverLayoutBuilder(
+                builder: (context, constraints) {
+                  final compensate = (constraints.viewportMainAxisExtent - constraints.remainingPaintExtent) / 2;
+                  return SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Transform.translate(
+                      offset: Offset(0, -compensate),
+                      child: const Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('📊', style: TextStyle(fontSize: 64)),
+                            SizedBox(height: 16),
+                            Text('No data for this month', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ] else ...[
               // Donut chart card

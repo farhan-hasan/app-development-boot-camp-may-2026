@@ -211,14 +211,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
           // ── Section header ──
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: expensesAsync.when(
-                data: (data) {
-                  final filtered = categoryFilter == null
-                      ? data
-                      : data.where((e) => e.category == categoryFilter).toList();
-                  return Row(
+            child: expensesAsync.when(
+              data: (data) {
+                final filtered = categoryFilter == null
+                    ? data
+                    : data.where((e) => e.category == categoryFilter).toList();
+                final flat = _buildFlatList(filtered, query, showAll);
+                if (flat.isEmpty) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Row(
                     children: [
                       Text(
                         'Recent Transactions',
@@ -246,11 +248,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ),
                         ),
                     ],
-                  );
-                },
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-              ),
+                  ),
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
             ),
           ),
 
@@ -262,7 +264,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   : data.where((e) => e.category == categoryFilter).toList();
               final flat = _buildFlatList(categoryFiltered, query, showAll);
               if (flat.isEmpty) {
-                return SliverFillRemaining(child: EmptyState());
+                return SliverLayoutBuilder(
+                  builder: (context, constraints) {
+                    final compensate = (constraints.viewportMainAxisExtent - constraints.remainingPaintExtent) / 2;
+                    return SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Transform.translate(
+                        offset: Offset(0, -compensate),
+                        child: const EmptyState(),
+                      ),
+                    );
+                  },
+                );
               }
               int expenseIndex = 0;
               return SliverPadding(

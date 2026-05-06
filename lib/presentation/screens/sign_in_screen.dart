@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hisabi/config/theme.dart';
 import 'package:hisabi/presentation/providers/auth_provider.dart';
@@ -112,17 +113,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Center(
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [kPrimaryLight, kPrimary]),
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [BoxShadow(color: kPrimary.withValues(alpha: 0.35), blurRadius: 24, offset: const Offset(0, 8))],
-                  ),
-                  alignment: Alignment.center,
-                  child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 40),
-                ),
+                child: Image.asset('assets/icon/app_icon.png', width: 88, height: 88),
               ),
               const SizedBox(height: 28),
               Text(
@@ -565,13 +556,7 @@ class _GoogleButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 28,
-              height: 28,
-              decoration: const BoxDecoration(color: Color(0xFF4285F4), shape: BoxShape.circle),
-              alignment: Alignment.center,
-              child: const Text('G', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
-            ),
+            SvgPicture.asset('assets/google_logo.svg', width: 22, height: 22),
             const SizedBox(width: 12),
             Text('Continue with Google', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textPrimary)),
           ],

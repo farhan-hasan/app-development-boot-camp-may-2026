@@ -14,10 +14,10 @@ import 'package:hisabi/presentation/screens/settings_screen.dart';
 import 'package:hisabi/presentation/screens/sign_in_screen.dart';
 import 'package:hisabi/presentation/screens/verify_email_screen.dart';
 
-GoRouter createRouter(bool onboardingDone) {
+GoRouter createRouter(ValueGetter<bool> isOnboardingDone) {
   final notifier = _AuthChangeNotifier();
   return GoRouter(
-    initialLocation: _initialLocation(onboardingDone),
+    initialLocation: _initialLocation(isOnboardingDone()),
     refreshListenable: notifier,
     redirect: (context, state) {
       final user = FirebaseAuth.instance.currentUser;
@@ -32,7 +32,7 @@ GoRouter createRouter(bool onboardingDone) {
         return isVerifyPage ? null : '/verify-email';
       }
       if (isAuthPage || isVerifyPage) {
-        return onboardingDone ? '/' : '/onboarding';
+        return isOnboardingDone() ? '/' : '/onboarding';
       }
       return null;
     },
@@ -96,7 +96,7 @@ String _initialLocation(bool onboardingDone) {
 
 class _AuthChangeNotifier extends ChangeNotifier {
   _AuthChangeNotifier() {
-    _sub = FirebaseAuth.instance.authStateChanges().listen((_) => notifyListeners());
+    _sub = FirebaseAuth.instance.userChanges().listen((_) => notifyListeners());
   }
   late final StreamSubscription<User?> _sub;
 
