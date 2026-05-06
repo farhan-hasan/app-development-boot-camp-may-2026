@@ -260,8 +260,11 @@ class AddExpenseFormState {
     this.amountError,
     this.titleError,
     this.categoryError,
+    this.itemsError,
     this.hasValidAmount = false,
     this.hasTitle = false,
+    this.isGrouped = false,
+    this.hasValidItems = false,
   });
 
   final String? selectedCategory;
@@ -270,10 +273,14 @@ class AddExpenseFormState {
   final String? amountError;
   final String? titleError;
   final String? categoryError;
+  final String? itemsError;
   final bool hasValidAmount;
   final bool hasTitle;
+  final bool isGrouped;
+  final bool hasValidItems;
 
-  bool get isValid => hasValidAmount && hasTitle && selectedCategory != null;
+  bool get isValid => hasTitle && selectedCategory != null &&
+      (isGrouped ? hasValidItems : hasValidAmount);
 
   AddExpenseFormState copyWith({
     String? selectedCategory,
@@ -286,8 +293,12 @@ class AddExpenseFormState {
     bool clearTitleError = false,
     String? categoryError,
     bool clearCategoryError = false,
+    String? itemsError,
+    bool clearItemsError = false,
     bool? hasValidAmount,
     bool? hasTitle,
+    bool? isGrouped,
+    bool? hasValidItems,
   }) {
     return AddExpenseFormState(
       selectedCategory: clearCategory ? null : (selectedCategory ?? this.selectedCategory),
@@ -296,8 +307,11 @@ class AddExpenseFormState {
       amountError: clearAmountError ? null : (amountError ?? this.amountError),
       titleError: clearTitleError ? null : (titleError ?? this.titleError),
       categoryError: clearCategoryError ? null : (categoryError ?? this.categoryError),
+      itemsError: clearItemsError ? null : (itemsError ?? this.itemsError),
       hasValidAmount: hasValidAmount ?? this.hasValidAmount,
       hasTitle: hasTitle ?? this.hasTitle,
+      isGrouped: isGrouped ?? this.isGrouped,
+      hasValidItems: hasValidItems ?? this.hasValidItems,
     );
   }
 }
@@ -310,6 +324,8 @@ class AddExpenseFormNotifier extends StateNotifier<AddExpenseFormState> {
             selectedDate: existing.date,
             hasValidAmount: existing.amount > 0,
             hasTitle: existing.title.isNotEmpty,
+            isGrouped: existing.isGrouped,
+            hasValidItems: existing.isGrouped,
           )
         : AddExpenseFormState(selectedDate: DateTime.now()),
   );
@@ -335,7 +351,15 @@ class AddExpenseFormNotifier extends StateNotifier<AddExpenseFormState> {
     state = state.copyWith(saving: v);
   }
 
-  void setErrors({String? amount, String? title, String? category}) {
+  void setGrouped(bool grouped) {
+    state = state.copyWith(isGrouped: grouped, clearAmountError: true, clearItemsError: true);
+  }
+
+  void updateGroupValidity(bool hasItems) {
+    state = state.copyWith(hasValidItems: hasItems, clearItemsError: true);
+  }
+
+  void setErrors({String? amount, String? title, String? category, String? items}) {
     state = AddExpenseFormState(
       selectedCategory: state.selectedCategory,
       selectedDate: state.selectedDate,
@@ -343,8 +367,11 @@ class AddExpenseFormNotifier extends StateNotifier<AddExpenseFormState> {
       amountError: amount,
       titleError: title,
       categoryError: category,
+      itemsError: items,
       hasValidAmount: state.hasValidAmount,
       hasTitle: state.hasTitle,
+      isGrouped: state.isGrouped,
+      hasValidItems: state.hasValidItems,
     );
   }
 }

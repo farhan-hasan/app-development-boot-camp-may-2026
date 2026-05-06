@@ -110,10 +110,14 @@ class _ExpenseDetailSheetState extends State<_ExpenseDetailSheet> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 _DetailRow(icon: Icons.calendar_today_outlined, label: 'Date', value: formatDate(widget.expense.date), colors: colors),
                 Divider(color: colors.border, height: 1),
-                _DetailRow(icon: Icons.attach_money_outlined, label: 'Amount', value: amount, colors: colors),
+                if (widget.expense.isGrouped)
+                  _ItemsBreakdown(expense: widget.expense, currency: widget.currency, colors: colors)
+                else
+                  _DetailRow(icon: Icons.attach_money_outlined, label: 'Amount', value: amount, colors: colors),
                 if (widget.expense.note != null && widget.expense.note!.isNotEmpty) ...[
                   Divider(color: colors.border, height: 1),
                   _DetailRow(icon: Icons.info_outline, label: 'Note', value: widget.expense.note!, colors: colors),
@@ -219,6 +223,60 @@ class _DetailRow extends StatelessWidget {
           Text(label, style: TextStyle(fontSize: 14, color: colors.textSec)),
           const Spacer(),
           Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textPrimary)),
+        ],
+      ),
+    );
+  }
+}
+
+class _ItemsBreakdown extends StatelessWidget {
+  const _ItemsBreakdown({required this.expense, required this.currency, required this.colors});
+  final Expense expense;
+  final String currency;
+  final AppColors colors;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = expense.items!;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.list_alt_outlined, size: 18, color: colors.textSec),
+              const SizedBox(width: 10),
+              Text(
+                '${items.length} item${items.length == 1 ? '' : 's'}',
+                style: TextStyle(fontSize: 14, color: colors.textSec),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.25,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                children: items.map((item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6, left: 28),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(item.name, style: TextStyle(fontSize: 14, color: colors.textPrimary)),
+                      ),
+                      Text(
+                        NumberFormat.currency(symbol: currency, decimalDigits: 0).format(item.amount),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textPrimary),
+                      ),
+                    ],
+                  ),
+                )).toList(),
+              ),
+            ),
+          ),
         ],
       ),
     );

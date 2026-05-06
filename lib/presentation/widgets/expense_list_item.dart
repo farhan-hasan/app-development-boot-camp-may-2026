@@ -126,7 +126,9 @@ class _ExpenseListItemState extends State<ExpenseListItem> with SingleTickerProv
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          widget.expense.category,
+                          widget.expense.isGrouped
+                              ? '${widget.expense.category} · ${widget.expense.items!.length} items'
+                              : widget.expense.category,
                           style: TextStyle(fontSize: 12, color: colors.textSec),
                         ),
                       ],
