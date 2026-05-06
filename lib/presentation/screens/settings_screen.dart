@@ -5,6 +5,7 @@ import 'package:hisabi/config/constants.dart';
 import 'package:hisabi/config/theme.dart';
 import 'package:hisabi/presentation/providers/expense_provider.dart';
 import 'package:hisabi/presentation/widgets/category_form_sheet.dart';
+import 'package:hisabi/utils/network_utils.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -309,18 +310,22 @@ class _ClearDataRowState extends ConsumerState<_ClearDataRow> {
           onTap: () async {
             if (confirming) {
               _confirming.value = false;
-              await ref.read(expenseListProvider.notifier).clearAll();
-              await ref.read(customCategoriesProvider.notifier).clearAll();
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('All data cleared'),
-                    backgroundColor: kDanger,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  ),
-                );
+              try {
+                await ref.read(expenseListProvider.notifier).clearAll();
+                await ref.read(customCategoriesProvider.notifier).clearAll();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('All data cleared'),
+                      backgroundColor: kDanger,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) showNetworkSnackBar(context, e);
               }
             } else {
               _confirming.value = true;

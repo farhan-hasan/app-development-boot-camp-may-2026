@@ -7,6 +7,7 @@ import 'package:hisabi/domain/entities/expense.dart';
 import 'package:hisabi/presentation/providers/expense_provider.dart';
 import 'package:hisabi/presentation/widgets/category_chip.dart';
 import 'package:hisabi/presentation/widgets/category_form_sheet.dart';
+import 'package:hisabi/utils/network_utils.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
@@ -80,6 +81,12 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
       return;
     }
 
+    // Connectivity pre-flight check — fast feedback before touching Firestore
+    if (!await isConnected()) {
+      if (mounted) showNetworkSnackBar(context, const NetworkException.offline());
+      return;
+    }
+
     ref.read(_formProvider.notifier).setSaving(true);
     try {
       final expense = Expense(
@@ -108,6 +115,8 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
           ),
         );
       }
+    } catch (e) {
+      if (mounted) showNetworkSnackBar(context, e);
     } finally {
       if (mounted) ref.read(_formProvider.notifier).setSaving(false);
     }

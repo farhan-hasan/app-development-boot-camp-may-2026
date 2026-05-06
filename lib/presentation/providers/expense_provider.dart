@@ -31,6 +31,7 @@ final selectedMonthProvider = StateProvider<DateTime>((_) {
 final searchQueryProvider = StateProvider<String>((_) => '');
 final searchModeProvider = StateProvider<bool>((_) => false);
 final showAllTransactionsProvider = StateProvider<bool>((_) => false);
+final categoryFilterProvider = StateProvider<String?>((_) => null);
 final onboardingPageProvider = StateProvider<int>((_) => 0);
 
 // ---------------------------------------------------------------------------
@@ -134,13 +135,16 @@ class ExpenseList extends _$ExpenseList {
   }
 
   Future<void> deleteExpense(String id) async {
-    // Optimistic update: remove from local state immediately so the UI
-    // never flashes a loading spinner. Firestore delete follows in the background.
     final current = state.valueOrNull;
     if (current != null) {
       state = AsyncData(current.where((e) => e.id != id).toList());
     }
-    await ref.read(expenseRepositoryProvider).deleteExpense(id);
+    try {
+      await ref.read(expenseRepositoryProvider).deleteExpense(id);
+    } catch (e) {
+      if (current != null) state = AsyncData(current);
+      rethrow;
+    }
   }
 
   Future<void> clearAll() async {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:hisabi/utils/date_formatter.dart';
 
 class SummaryCard extends StatelessWidget {
   const SummaryCard({
@@ -27,10 +27,7 @@ class SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatted = NumberFormat.currency(
-      symbol: currency,
-      decimalDigits: 0,
-    ).format(amount);
+    final formatted = formatCompact(amount, currency);
     return GestureDetector(
       onTap: onTap,
       child: Container(

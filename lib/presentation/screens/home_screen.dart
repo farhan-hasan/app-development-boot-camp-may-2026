@@ -9,7 +9,9 @@ import 'package:hisabi/presentation/widgets/expense_detail_sheet.dart';
 import 'package:hisabi/presentation/widgets/expense_list_item.dart';
 import 'package:hisabi/presentation/widgets/month_selector.dart';
 import 'package:hisabi/presentation/widgets/summary_card.dart';
+import 'package:hisabi/utils/category_utils.dart';
 import 'package:hisabi/utils/date_formatter.dart';
+import 'package:hisabi/utils/network_utils.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -103,10 +105,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final searchMode = ref.watch(searchModeProvider);
     final showAll = ref.watch(showAllTransactionsProvider);
     final query = ref.watch(searchQueryProvider);
+    final categoryFilter = ref.watch(categoryFilterProvider);
     final extraCategories = ref
         .watch(customCategoriesProvider)
         .map((c) => c.toMap())
         .toList();
+
+    ref.listen<DateTime>(selectedMonthProvider, (_, __) {
+      ref.read(categoryFilterProvider.notifier).state = null;
+    });
 
     return RefreshIndicator(
       color: kPrimary,
@@ -172,40 +179,75 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
 
+          // ── Category filter chips ──
+          if (!searchMode)
+            SliverToBoxAdapter(
+              child: expensesAsync.maybeWhen(
+                data: (data) {
+                  final catTotals = <String, double>{};
+                  for (final e in data) {
+                    catTotals[e.category] = (catTotals[e.category] ?? 0) + e.amount;
+                  }
+                  final catNames = (catTotals.entries.toList()
+                        ..sort((a, b) => b.value.compareTo(a.value)))
+                      .map((e) => e.key)
+                      .toList();
+                  if (catNames.length < 2) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: _CategoryFilterRow(
+                      categories: catNames,
+                      selectedCategory: categoryFilter,
+                      extraCategories: extraCategories,
+                      colors: colors,
+                      onSelected: (cat) =>
+                          ref.read(categoryFilterProvider.notifier).state = cat,
+                    ),
+                  );
+                },
+                orElse: () => const SizedBox.shrink(),
+              ),
+            ),
+
           // ── Section header ──
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: expensesAsync.when(
-                data: (data) => Row(
-                  children: [
-                    Text(
-                      'Recent Transactions',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: colors.textPrimary,
-                      ),
-                    ),
-                    const Spacer(),
-                    if (data.length > 10)
-                      GestureDetector(
-                        onTap: () =>
-                            ref
-                                    .read(showAllTransactionsProvider.notifier)
-                                    .state =
-                                !showAll,
-                        child: Text(
-                          showAll ? 'Show Less' : 'See All',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: kPrimary,
-                          ),
+                data: (data) {
+                  final filtered = categoryFilter == null
+                      ? data
+                      : data.where((e) => e.category == categoryFilter).toList();
+                  return Row(
+                    children: [
+                      Text(
+                        'Recent Transactions',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: colors.textPrimary,
                         ),
                       ),
-                  ],
-                ),
+                      const Spacer(),
+                      if (filtered.length > 10)
+                        GestureDetector(
+                          onTap: () =>
+                              ref
+                                      .read(showAllTransactionsProvider.notifier)
+                                      .state =
+                                  !showAll,
+                          child: Text(
+                            showAll ? 'Show Less' : 'See All',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: kPrimary,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
                 loading: () => const SizedBox.shrink(),
                 error: (_, __) => const SizedBox.shrink(),
               ),
@@ -215,7 +257,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           // ── Transaction list ──
           expensesAsync.when(
             data: (data) {
-              final flat = _buildFlatList(data, query, showAll);
+              final categoryFiltered = categoryFilter == null
+                  ? data
+                  : data.where((e) => e.category == categoryFilter).toList();
+              final flat = _buildFlatList(categoryFiltered, query, showAll);
               if (flat.isEmpty) {
                 return SliverFillRemaining(child: EmptyState());
               }
@@ -244,14 +289,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       extraCategories: extraCategories,
                       onDelete: () => ref
                           .read(expenseListProvider.notifier)
-                          .deleteExpense(expense.id),
+                          .deleteExpense(expense.id)
+                          .catchError((e) {
+                            if (context.mounted) showNetworkSnackBar(context, e);
+                          }),
                       onTap: () => showExpenseDetailSheet(
                         context,
                         expense,
                         currency,
                         () => ref
                             .read(expenseListProvider.notifier)
-                            .deleteExpense(expense.id),
+                            .deleteExpense(expense.id)
+                            .catchError((e) {
+                              if (context.mounted) showNetworkSnackBar(context, e);
+                            }),
                         extraCategories: extraCategories,
                       ),
                     );
@@ -265,11 +316,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.error_outline, size: 48, color: colors.textSec),
+                    Icon(Icons.wifi_off_outlined, size: 48, color: colors.textSec),
                     const SizedBox(height: 12),
                     Text(
-                      'Failed to load expenses',
-                      style: TextStyle(color: colors.textSec),
+                      err is NetworkException ? err.message : 'Failed to load expenses',
+                      style: TextStyle(color: colors.textSec, fontSize: 14),
+                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     TextButton(onPressed: _refresh, child: const Text('Retry')),
@@ -477,6 +529,108 @@ class _SkeletonList extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CategoryFilterRow extends StatelessWidget {
+  const _CategoryFilterRow({
+    required this.categories,
+    required this.selectedCategory,
+    required this.extraCategories,
+    required this.colors,
+    required this.onSelected,
+  });
+  final List<String> categories;
+  final String? selectedCategory;
+  final List<Map<String, dynamic>> extraCategories;
+  final AppColors colors;
+  final ValueChanged<String?> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          _FilterPill(
+            label: 'All',
+            selected: selectedCategory == null,
+            color: kPrimary,
+            colors: colors,
+            onTap: () => onSelected(null),
+          ),
+          ...categories.map((cat) {
+            final emoji = getCategoryEmoji(cat, extra: extraCategories);
+            final color = getCategoryColor(cat, extra: extraCategories);
+            return Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: _FilterPill(
+                label: cat,
+                emoji: emoji,
+                selected: selectedCategory == cat,
+                color: color,
+                colors: colors,
+                onTap: () => onSelected(selectedCategory == cat ? null : cat),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterPill extends StatelessWidget {
+  const _FilterPill({
+    required this.label,
+    required this.selected,
+    required this.color,
+    required this.colors,
+    required this.onTap,
+    this.emoji,
+  });
+  final String label;
+  final bool selected;
+  final Color color;
+  final AppColors colors;
+  final VoidCallback onTap;
+  final String? emoji;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected ? color.withValues(alpha: 0.15) : colors.cardAlt,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? color.withValues(alpha: 0.5) : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (emoji != null) ...[
+              Text(emoji!, style: const TextStyle(fontSize: 13)),
+              const SizedBox(width: 5),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: selected ? color : colors.textSec,
+              ),
+            ),
+          ],
         ),
       ),
     );
