@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hisabi/config/theme.dart';
@@ -8,15 +11,51 @@ import 'package:hisabi/presentation/screens/edit_expense_screen.dart';
 import 'package:hisabi/presentation/screens/home_screen.dart';
 import 'package:hisabi/presentation/screens/onboarding_screen.dart';
 import 'package:hisabi/presentation/screens/settings_screen.dart';
+import 'package:hisabi/presentation/screens/sign_in_screen.dart';
+import 'package:hisabi/presentation/screens/verify_email_screen.dart';
 
-GoRouter createRouter(String initialRoute) => GoRouter(
-  initialLocation: initialRoute,
-  routes: [
-    GoRoute(
-      path: '/onboarding',
-      pageBuilder: (_, state) =>
-          NoTransitionPage(key: state.pageKey, child: const OnboardingScreen()),
-    ),
+GoRouter createRouter(bool onboardingDone) {
+  final notifier = _AuthChangeNotifier();
+  return GoRouter(
+    initialLocation: _initialLocation(onboardingDone),
+    refreshListenable: notifier,
+    redirect: (context, state) {
+      final user = FirebaseAuth.instance.currentUser;
+      final loc = state.matchedLocation;
+      final isAuthPage = loc == '/sign-in' || loc == '/sign-up';
+      final isVerifyPage = loc == '/verify-email';
+
+      if (user == null) {
+        return isAuthPage ? null : '/sign-in';
+      }
+      if (!user.emailVerified) {
+        return isVerifyPage ? null : '/verify-email';
+      }
+      if (isAuthPage || isVerifyPage) {
+        return onboardingDone ? '/' : '/onboarding';
+      }
+      return null;
+    },
+    routes: [
+      GoRoute(
+        path: '/sign-in',
+        pageBuilder: (_, state) =>
+            NoTransitionPage(key: state.pageKey, child: const SignInScreen()),
+      ),
+      GoRoute(
+        path: '/sign-up',
+        pageBuilder: (_, state) => _slideRightPage(state, const SignUpScreen()),
+      ),
+      GoRoute(
+        path: '/verify-email',
+        pageBuilder: (_, state) =>
+            NoTransitionPage(key: state.pageKey, child: const VerifyEmailScreen()),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        pageBuilder: (_, state) =>
+            NoTransitionPage(key: state.pageKey, child: const OnboardingScreen()),
+      ),
     GoRoute(
       path: '/settings',
       pageBuilder: (_, state) => _slideRightPage(state, const SettingsScreen()),
@@ -45,7 +84,28 @@ GoRouter createRouter(String initialRoute) => GoRouter(
       ],
     ),
   ],
-);
+  );
+}
+
+String _initialLocation(bool onboardingDone) {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return '/sign-in';
+  if (!user.emailVerified) return '/verify-email';
+  return onboardingDone ? '/' : '/onboarding';
+}
+
+class _AuthChangeNotifier extends ChangeNotifier {
+  _AuthChangeNotifier() {
+    _sub = FirebaseAuth.instance.authStateChanges().listen((_) => notifyListeners());
+  }
+  late final StreamSubscription<User?> _sub;
+
+  @override
+  void dispose() {
+    _sub.cancel();
+    super.dispose();
+  }
+}
 
 CustomTransitionPage<void> _slideRightPage(GoRouterState state, Widget child) {
   return CustomTransitionPage<void>(

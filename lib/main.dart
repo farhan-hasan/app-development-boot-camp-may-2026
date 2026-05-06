@@ -25,13 +25,13 @@ void main() async {
       onboardingCompletedProvider.overrideWith((_) => OnboardingNotifier(onboardingDone)),
       themeModeProvider.overrideWith((_) => ThemeModeNotifier(initialTheme)),
     ],
-    child: HisabiApp(initialRoute: onboardingDone ? '/' : '/onboarding'),
+    child: HisabiApp(onboardingDone: onboardingDone),
   ));
 }
 
 class HisabiApp extends ConsumerStatefulWidget {
-  const HisabiApp({super.key, required this.initialRoute});
-  final String initialRoute;
+  const HisabiApp({super.key, required this.onboardingDone});
+  final bool onboardingDone;
 
   @override
   ConsumerState<HisabiApp> createState() => _HisabiAppState();
@@ -43,7 +43,7 @@ class _HisabiAppState extends ConsumerState<HisabiApp> {
   @override
   void initState() {
     super.initState();
-    _router = createRouter(widget.initialRoute);
+    _router = createRouter(widget.onboardingDone);
   }
 
   @override

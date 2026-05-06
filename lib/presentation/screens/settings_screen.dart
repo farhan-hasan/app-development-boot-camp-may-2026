@@ -1,8 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hisabi/config/constants.dart';
 import 'package:hisabi/config/theme.dart';
+import 'package:hisabi/presentation/providers/auth_provider.dart';
 import 'package:hisabi/presentation/providers/expense_provider.dart';
 import 'package:hisabi/presentation/widgets/category_form_sheet.dart';
 import 'package:hisabi/utils/network_utils.dart';
@@ -17,6 +19,7 @@ class SettingsScreen extends ConsumerWidget {
     final currency = ref.watch(currencyProvider);
     final customCats = ref.watch(customCategoriesProvider);
     final isDark = themeMode == ThemeMode.dark;
+    final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       backgroundColor: colors.bg,
@@ -57,13 +60,25 @@ class SettingsScreen extends ConsumerWidget {
                   child: const Text('💳', style: TextStyle(fontSize: 24)),
                 ),
                 const SizedBox(width: 14),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('My Wallet', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
-                    const SizedBox(height: 2),
-                    Text('Personal expense tracker', style: TextStyle(fontSize: 13, color: colors.textSec)),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user?.displayName ?? 'My Wallet',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        user?.email ?? 'Personal expense tracker',
+                        style: TextStyle(fontSize: 13, color: colors.textSec),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -144,7 +159,39 @@ class SettingsScreen extends ConsumerWidget {
             _ClearDataRow(colors: colors),
           ]),
 
+          _SectionHeader('ACCOUNT', colors),
+          _SettingsCard(colors: colors, children: [
+            _SettingsRow(
+              icon: Icons.logout_rounded,
+              iconBg: kDanger.withValues(alpha: 0.1),
+              label: 'Sign Out',
+              colors: colors,
+              isDestructive: true,
+              onTap: () => _confirmSignOut(context, ref, colors),
+            ),
+          ]),
+
           const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  void _confirmSignOut(BuildContext context, WidgetRef ref, AppColors colors) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Sign out?'),
+        content: const Text('You will be returned to the sign in screen.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await ref.read(authRepositoryProvider).signOut();
+            },
+            child: const Text('Sign Out', style: TextStyle(color: kDanger)),
+          ),
         ],
       ),
     );

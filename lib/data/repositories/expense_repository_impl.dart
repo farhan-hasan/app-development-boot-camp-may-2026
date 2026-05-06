@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:hisabi/config/constants.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hisabi/data/models/expense_model.dart';
 import 'package:hisabi/domain/entities/expense.dart';
 import 'package:hisabi/domain/repositories/expense_repository.dart';
@@ -12,8 +12,10 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   ExpenseRepositoryImpl(this._firestore);
   final FirebaseFirestore _firestore;
 
-  CollectionReference<Map<String, dynamic>> get _collection =>
-      _firestore.collection(AppConstants.firestoreCollection);
+  CollectionReference<Map<String, dynamic>> get _collection => _firestore
+      .collection('users')
+      .doc(FirebaseAuth.instance.currentUser!.uid)
+      .collection('expenses');
 
   Future<T> _networkGuard<T>(Future<T> Function() operation) async {
     final results = await Connectivity().checkConnectivity();
