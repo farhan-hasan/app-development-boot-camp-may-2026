@@ -23,25 +23,39 @@ class AppConstants {
 
   static const List<Map<String, dynamic>> onboardingSlides = [
     {
-      'emoji': '💰',
-      'title': 'Track Every Penny',
-      'description': 'Log your daily expenses in seconds. Stay on top of your spending effortlessly.',
-      'gradient': [Color(0xFF0D9488), Color(0xFF0F766E)],
-      'accent': Color(0xFF0D9488),
+      'emoji': '⚡',
+      'title': 'Log in Seconds',
+      'description': 'Add expenses faster than ever. Simple, focused forms with smart keyboard navigation.',
+      'gradient': [Color(0xFF06B6D4), Color(0xFF0891B2)],
+      'accent': Color(0xFF06B6D4),
+    },
+    {
+      'emoji': '📦',
+      'title': 'Group Your Purchases',
+      'description': 'Bundle related items together. Track groceries, shopping trips, or bills as one list with individual breakdowns.',
+      'gradient': [Color(0xFFA855F7), Color(0xFF9333EA)],
+      'accent': Color(0xFFA855F7),
     },
     {
       'emoji': '📊',
-      'title': 'Visualize Your Spending',
-      'description': 'Beautiful charts break down your spending by category so you always know where money goes.',
+      'title': 'Visualize Patterns',
+      'description': 'Interactive pie charts and category breakdown. Tap any segment to drill down into specific spending categories and transactions.',
       'gradient': [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
       'accent': Color(0xFF8B5CF6),
     },
     {
-      'emoji': '🎯',
-      'title': 'Spend Smarter',
-      'description': 'Monthly insights help you spot patterns and make better financial decisions.',
-      'gradient': [Color(0xFFF97316), Color(0xFFEA580C)],
-      'accent': Color(0xFFF97316),
+      'emoji': '✨',
+      'title': 'Customize Your Way',
+      'description': 'Create custom categories with emojis, search expenses, filter by category, choose from 5 currencies, and toggle dark mode. Your expense tracker, your rules.',
+      'gradient': [Color(0xFFEC4899), Color(0xFFBE185D)],
+      'accent': Color(0xFFEC4899),
+    },
+    {
+      'emoji': '☁️',
+      'title': 'Your Data, Secure',
+      'description': 'All expenses synced to the cloud with Firebase. Your financial data is always backed up and accessible from any device.',
+      'gradient': [Color(0xFF0EA5E9), Color(0xFF0284C7)],
+      'accent': Color(0xFF0EA5E9),
     },
   ];
 }

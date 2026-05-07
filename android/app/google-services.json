@@ -12,7 +12,20 @@
           "package_name": "com.farhanhasan.hisabi"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "413892751641-lhl9qi9gpuojfifau2l9kkr8skkqjr68.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.farhanhasan.hisabi",
+            "certificate_hash": "f3c126642da946f549688d5c7eb41cac6a1dc2ce"
+          }
+        },
+        {
+          "client_id": "413892751641-foqc87mcib3lgsspfa4sfc1atv82vnu9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCSlmCJgFHG5m44jAOQgwd0oe8UM8MXk9g"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "413892751641-foqc87mcib3lgsspfa4sfc1atv82vnu9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "413892751641-jdvkspv8eqnp8u0htjcomlvm3h4o4auc.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.farhanhasan.hisabi"
+              }
+            }
+          ]
         }
       }
     }

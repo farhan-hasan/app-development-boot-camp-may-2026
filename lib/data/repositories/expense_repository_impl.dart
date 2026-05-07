@@ -43,6 +43,16 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   });
 
   @override
+  Future<List<Expense>> getAllExpenses() => _networkGuard(() async {
+    final snapshot = await _collection
+        .orderBy('date', descending: true)
+        .get();
+    return snapshot.docs
+        .map((doc) => ExpenseModel.fromJson(doc.data(), doc.id).toEntity())
+        .toList();
+  });
+
+  @override
   Future<void> addExpense(Expense expense) => _networkGuard(() async {
     final model = ExpenseModel.fromEntity(expense);
     await _collection.add(model.toJson());

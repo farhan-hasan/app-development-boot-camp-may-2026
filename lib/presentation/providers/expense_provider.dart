@@ -152,6 +152,28 @@ class ExpenseList extends _$ExpenseList {
   }
 }
 
+@riverpod
+class AllExpenses extends _$AllExpenses {
+  @override
+  Future<List<Expense>> build() async {
+    final repo = ref.watch(expenseRepositoryProvider);
+    return repo.getAllExpenses();
+  }
+
+  Future<void> deleteExpense(String id) async {
+    final current = state.valueOrNull;
+    if (current != null) {
+      state = AsyncData(current.where((e) => e.id != id).toList());
+    }
+    try {
+      await ref.read(expenseRepositoryProvider).deleteExpense(id);
+    } catch (e) {
+      if (current != null) state = AsyncData(current);
+      rethrow;
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Derived FutureProviders
 // ---------------------------------------------------------------------------

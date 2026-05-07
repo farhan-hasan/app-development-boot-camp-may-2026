@@ -66,24 +66,45 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     _loading.value = true;
     _error.value = null;
     try {
-      await ref.read(authRepositoryProvider).signInWithEmailPassword(email, password);
+      await ref
+          .read(authRepositoryProvider)
+          .signInWithEmailPassword(email, password);
     } on FirebaseAuthException catch (e) {
-      if (mounted) { _error.value = _mapError(e); _loading.value = false; }
+      if (mounted) {
+        _error.value = _mapError(e);
+        _loading.value = false;
+      }
     } catch (_) {
-      if (mounted) { _error.value = 'Something went wrong'; _loading.value = false; }
+      if (mounted) {
+        _error.value = 'Something went wrong';
+        _loading.value = false;
+      }
     }
   }
 
   Future<void> _signInWithGoogle() async {
     _error.value = null;
     try {
-      await ref.read(authRepositoryProvider).signInWithGoogle(
-        onAccountSelected: () { if (mounted) _googleLoading.value = true; },
-      );
+      await ref
+          .read(authRepositoryProvider)
+          .signInWithGoogle(
+            onAccountSelected: () {
+              if (mounted) _googleLoading.value = true;
+            },
+          );
     } on FirebaseAuthException catch (e) {
-      if (mounted) { _error.value = _mapError(e); _googleLoading.value = false; }
+      if (mounted) {
+        _error.value = _mapError(e);
+        _googleLoading.value = false;
+      }
     } catch (e) {
-      if (mounted) { _error.value = e.toString().contains('cancelled') ? null : 'Google sign-in failed'; _googleLoading.value = false; }
+      debugPrint("===================>$e");
+      if (mounted) {
+        _error.value = e.toString().contains('cancelled')
+            ? null
+            : 'Google sign-in failed';
+        _googleLoading.value = false;
+      }
     }
   }
 
@@ -96,13 +117,17 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Password reset email sent to $email'),
-          backgroundColor: kSuccess,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Password reset email sent to $email'),
+            backgroundColor: kSuccess,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          ),
+        );
       }
     } catch (_) {
       if (mounted) _error.value = 'Failed to send reset email';
@@ -113,7 +138,12 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return ListenableBuilder(
-      listenable: Listenable.merge([_obscure, _loading, _googleLoading, _error]),
+      listenable: Listenable.merge([
+        _obscure,
+        _loading,
+        _googleLoading,
+        _error,
+      ]),
       builder: (_, __) => Scaffold(
         backgroundColor: colors.bg,
         body: SafeArea(
@@ -125,11 +155,28 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Center(child: Image.asset('assets/icon/app_icon.png', width: 88, height: 88)),
+                      Center(
+                        child: Image.asset(
+                          'assets/icon/app_icon.png',
+                          width: 88,
+                          height: 88,
+                        ),
+                      ),
                       const SizedBox(height: 28),
-                      Text('Welcome back', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: colors.textPrimary, letterSpacing: -0.5)),
+                      Text(
+                        'Welcome back',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          color: colors.textPrimary,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
                       const SizedBox(height: 6),
-                      Text('Sign in to continue', style: TextStyle(fontSize: 15, color: colors.textSec)),
+                      Text(
+                        'Sign in to continue',
+                        style: TextStyle(fontSize: 15, color: colors.textSec),
+                      ),
                       const SizedBox(height: 36),
                       _AuthField(
                         label: 'Email',
@@ -153,7 +200,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         colors: colors,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscure.value ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                            _obscure.value
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
                             color: colors.textSec,
                             size: 20,
                           ),
@@ -166,10 +215,20 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         child: TextButton(
                           onPressed: _loading.value ? null : _forgotPassword,
                           style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 4,
+                            ),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          child: const Text('Forgot password?', style: TextStyle(fontSize: 13, color: kPrimary, fontWeight: FontWeight.w600)),
+                          child: const Text(
+                            'Forgot password?',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: kPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
                       if (_error.value != null) ...[
@@ -177,26 +236,57 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         _ErrorBanner(message: _error.value!),
                       ],
                       const SizedBox(height: 20),
-                      _PrimaryButton(label: 'Sign In', loading: _loading.value, onTap: _loading.value ? null : _signIn),
+                      _PrimaryButton(
+                        label: 'Sign In',
+                        loading: _loading.value,
+                        onTap: _loading.value ? null : _signIn,
+                      ),
                       const SizedBox(height: 24),
-                      Row(children: [
-                        Expanded(child: Divider(color: colors.border)),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
-                          child: Text('or', style: TextStyle(fontSize: 13, color: colors.textSec)),
-                        ),
-                        Expanded(child: Divider(color: colors.border)),
-                      ]),
+                      Row(
+                        children: [
+                          Expanded(child: Divider(color: colors.border)),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            child: Text(
+                              'or',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: colors.textSec,
+                              ),
+                            ),
+                          ),
+                          Expanded(child: Divider(color: colors.border)),
+                        ],
+                      ),
                       const SizedBox(height: 24),
-                      _GoogleButton(loading: _googleLoading.value, onTap: (_loading.value || _googleLoading.value) ? null : _signInWithGoogle, colors: colors),
+                      _GoogleButton(
+                        loading: _googleLoading.value,
+                        onTap: (_loading.value || _googleLoading.value)
+                            ? null
+                            : _signInWithGoogle,
+                        colors: colors,
+                      ),
                       const SizedBox(height: 40),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text("Don't have an account? ", style: TextStyle(fontSize: 14, color: colors.textSec)),
+                          Text(
+                            "Don't have an account? ",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: colors.textSec,
+                            ),
+                          ),
                           GestureDetector(
                             onTap: () => context.push('/sign-up'),
-                            child: const Text('Sign up', style: TextStyle(fontSize: 14, color: kPrimary, fontWeight: FontWeight.w700)),
+                            child: const Text(
+                              'Sign up',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: kPrimary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -208,10 +298,16 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 listenable: Listenable.merge([_emailFocus, _passwordFocus]),
                 builder: (ctx, __) {
                   if (_emailFocus.hasFocus) {
-                    return NextFieldBar(colors: colors, onNext: () => _passwordFocus.requestFocus());
+                    return NextFieldBar(
+                      colors: colors,
+                      onNext: () => _passwordFocus.requestFocus(),
+                    );
                   }
                   if (_passwordFocus.hasFocus) {
-                    return NextFieldBar(colors: colors, onNext: () => FocusScope.of(ctx).unfocus());
+                    return NextFieldBar(
+                      colors: colors,
+                      onNext: () => FocusScope.of(ctx).unfocus(),
+                    );
                   }
                   return const SizedBox.shrink();
                 },
@@ -305,24 +401,44 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     _loading.value = true;
     _error.value = null;
     try {
-      await ref.read(authRepositoryProvider).signUpWithEmailPassword(email, password, name);
+      await ref
+          .read(authRepositoryProvider)
+          .signUpWithEmailPassword(email, password, name);
     } on FirebaseAuthException catch (e) {
-      if (mounted) { _error.value = _mapError(e); _loading.value = false; }
+      if (mounted) {
+        _error.value = _mapError(e);
+        _loading.value = false;
+      }
     } catch (_) {
-      if (mounted) { _error.value = 'Something went wrong'; _loading.value = false; }
+      if (mounted) {
+        _error.value = 'Something went wrong';
+        _loading.value = false;
+      }
     }
   }
 
   Future<void> _signInWithGoogle() async {
     _error.value = null;
     try {
-      await ref.read(authRepositoryProvider).signInWithGoogle(
-        onAccountSelected: () { if (mounted) _googleLoading.value = true; },
-      );
+      await ref
+          .read(authRepositoryProvider)
+          .signInWithGoogle(
+            onAccountSelected: () {
+              if (mounted) _googleLoading.value = true;
+            },
+          );
     } on FirebaseAuthException catch (e) {
-      if (mounted) { _error.value = e.message; _googleLoading.value = false; }
+      if (mounted) {
+        _error.value = e.message;
+        _googleLoading.value = false;
+      }
     } catch (e) {
-      if (mounted) { _error.value = e.toString().contains('cancelled') ? null : 'Google sign-in failed'; _googleLoading.value = false; }
+      if (mounted) {
+        _error.value = e.toString().contains('cancelled')
+            ? null
+            : 'Google sign-in failed';
+        _googleLoading.value = false;
+      }
     }
   }
 
@@ -330,7 +446,13 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return ListenableBuilder(
-      listenable: Listenable.merge([_obscurePassword, _obscureConfirm, _loading, _googleLoading, _error]),
+      listenable: Listenable.merge([
+        _obscurePassword,
+        _obscureConfirm,
+        _loading,
+        _googleLoading,
+        _error,
+      ]),
       builder: (_, __) => Scaffold(
         backgroundColor: colors.bg,
         appBar: AppBar(
@@ -340,11 +462,25 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             onTap: () => context.pop(),
             child: Container(
               margin: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: colors.cardAlt, borderRadius: BorderRadius.circular(10)),
-              child: Icon(Icons.arrow_back_ios_new, size: 16, color: colors.textPrimary),
+              decoration: BoxDecoration(
+                color: colors.cardAlt,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                Icons.arrow_back_ios_new,
+                size: 16,
+                color: colors.textPrimary,
+              ),
             ),
           ),
-          title: Text('Create Account', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+          title: Text(
+            'Create Account',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: colors.textPrimary,
+            ),
+          ),
         ),
         body: SafeArea(
           top: false,
@@ -356,9 +492,20 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text('Join Hisabi', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: colors.textPrimary, letterSpacing: -0.5)),
+                      Text(
+                        'Join Hisabi',
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
+                          color: colors.textPrimary,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
                       const SizedBox(height: 6),
-                      Text('Start tracking your expenses today', style: TextStyle(fontSize: 15, color: colors.textSec)),
+                      Text(
+                        'Start tracking your expenses today',
+                        style: TextStyle(fontSize: 15, color: colors.textSec),
+                      ),
                       const SizedBox(height: 32),
                       _AuthField(
                         label: 'Full Name',
@@ -393,11 +540,14 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         colors: colors,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword.value ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                            _obscurePassword.value
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
                             color: colors.textSec,
                             size: 20,
                           ),
-                          onPressed: () => _obscurePassword.value = !_obscurePassword.value,
+                          onPressed: () =>
+                              _obscurePassword.value = !_obscurePassword.value,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -412,11 +562,14 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         colors: colors,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscureConfirm.value ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                            _obscureConfirm.value
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
                             color: colors.textSec,
                             size: 20,
                           ),
-                          onPressed: () => _obscureConfirm.value = !_obscureConfirm.value,
+                          onPressed: () =>
+                              _obscureConfirm.value = !_obscureConfirm.value,
                         ),
                       ),
                       if (_error.value != null) ...[
@@ -424,26 +577,57 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         _ErrorBanner(message: _error.value!),
                       ],
                       const SizedBox(height: 24),
-                      _PrimaryButton(label: 'Create Account', loading: _loading.value, onTap: _loading.value ? null : _signUp),
+                      _PrimaryButton(
+                        label: 'Create Account',
+                        loading: _loading.value,
+                        onTap: _loading.value ? null : _signUp,
+                      ),
                       const SizedBox(height: 24),
-                      Row(children: [
-                        Expanded(child: Divider(color: colors.border)),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
-                          child: Text('or', style: TextStyle(fontSize: 13, color: colors.textSec)),
-                        ),
-                        Expanded(child: Divider(color: colors.border)),
-                      ]),
+                      Row(
+                        children: [
+                          Expanded(child: Divider(color: colors.border)),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            child: Text(
+                              'or',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: colors.textSec,
+                              ),
+                            ),
+                          ),
+                          Expanded(child: Divider(color: colors.border)),
+                        ],
+                      ),
                       const SizedBox(height: 24),
-                      _GoogleButton(loading: _googleLoading.value, onTap: (_loading.value || _googleLoading.value) ? null : _signInWithGoogle, colors: colors),
+                      _GoogleButton(
+                        loading: _googleLoading.value,
+                        onTap: (_loading.value || _googleLoading.value)
+                            ? null
+                            : _signInWithGoogle,
+                        colors: colors,
+                      ),
                       const SizedBox(height: 36),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text('Already have an account? ', style: TextStyle(fontSize: 14, color: colors.textSec)),
+                          Text(
+                            'Already have an account? ',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: colors.textSec,
+                            ),
+                          ),
                           GestureDetector(
                             onTap: () => context.pop(),
-                            child: const Text('Sign in', style: TextStyle(fontSize: 14, color: kPrimary, fontWeight: FontWeight.w700)),
+                            child: const Text(
+                              'Sign in',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: kPrimary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -452,19 +636,36 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 ),
               ),
               ListenableBuilder(
-                listenable: Listenable.merge([_nameFocus, _emailFocus, _passwordFocus, _confirmFocus]),
+                listenable: Listenable.merge([
+                  _nameFocus,
+                  _emailFocus,
+                  _passwordFocus,
+                  _confirmFocus,
+                ]),
                 builder: (ctx, __) {
                   if (_nameFocus.hasFocus) {
-                    return NextFieldBar(colors: colors, onNext: () => _emailFocus.requestFocus());
+                    return NextFieldBar(
+                      colors: colors,
+                      onNext: () => _emailFocus.requestFocus(),
+                    );
                   }
                   if (_emailFocus.hasFocus) {
-                    return NextFieldBar(colors: colors, onNext: () => _passwordFocus.requestFocus());
+                    return NextFieldBar(
+                      colors: colors,
+                      onNext: () => _passwordFocus.requestFocus(),
+                    );
                   }
                   if (_passwordFocus.hasFocus) {
-                    return NextFieldBar(colors: colors, onNext: () => _confirmFocus.requestFocus());
+                    return NextFieldBar(
+                      colors: colors,
+                      onNext: () => _confirmFocus.requestFocus(),
+                    );
                   }
                   if (_confirmFocus.hasFocus) {
-                    return NextFieldBar(colors: colors, onNext: () => FocusScope.of(ctx).unfocus());
+                    return NextFieldBar(
+                      colors: colors,
+                      onNext: () => FocusScope.of(ctx).unfocus(),
+                    );
                   }
                   return const SizedBox.shrink();
                 },
@@ -525,17 +726,34 @@ class _AuthField extends StatelessWidget {
         suffixIcon: suffixIcon,
         filled: true,
         fillColor: colors.card,
-        border: OutlineInputBorder(borderRadius: borderRadius, borderSide: BorderSide(color: colors.border, width: 1.5)),
-        enabledBorder: OutlineInputBorder(borderRadius: borderRadius, borderSide: BorderSide(color: colors.border, width: 1.5)),
-        focusedBorder: OutlineInputBorder(borderRadius: borderRadius, borderSide: const BorderSide(color: kPrimary, width: 2)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        border: OutlineInputBorder(
+          borderRadius: borderRadius,
+          borderSide: BorderSide(color: colors.border, width: 1.5),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: borderRadius,
+          borderSide: BorderSide(color: colors.border, width: 1.5),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: borderRadius,
+          borderSide: const BorderSide(color: kPrimary, width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 18,
+        ),
       ),
     );
   }
 }
 
 class _PrimaryButton extends StatelessWidget {
-  const _PrimaryButton({required this.label, required this.loading, required this.onTap});
+  const _PrimaryButton({
+    required this.label,
+    required this.loading,
+    required this.onTap,
+  });
+
   final String label;
   final bool loading;
   final VoidCallback? onTap;
@@ -548,24 +766,51 @@ class _PrimaryButton extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         height: 54,
         decoration: BoxDecoration(
-          gradient: !loading ? const LinearGradient(colors: [kPrimaryLight, kPrimary]) : null,
+          gradient: !loading
+              ? const LinearGradient(colors: [kPrimaryLight, kPrimary])
+              : null,
           color: loading ? context.appColors.cardAlt : null,
           borderRadius: BorderRadius.circular(16),
           boxShadow: !loading
-              ? [BoxShadow(color: kPrimary.withValues(alpha: 0.35), blurRadius: 24, offset: const Offset(0, 8))]
+              ? [
+                  BoxShadow(
+                    color: kPrimary.withValues(alpha: 0.35),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ]
               : null,
         ),
         alignment: Alignment.center,
         child: loading
-            ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-            : Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
+              )
+            : Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
       ),
     );
   }
 }
 
 class _GoogleButton extends StatelessWidget {
-  const _GoogleButton({required this.loading, required this.onTap, required this.colors});
+  const _GoogleButton({
+    required this.loading,
+    required this.onTap,
+    required this.colors,
+  });
+
   final bool loading;
   final VoidCallback? onTap;
   final AppColors colors;
@@ -585,13 +830,24 @@ class _GoogleButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (loading)
-              SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: kPrimary))
+              SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: kPrimary,
+                ),
+              )
             else
               SvgPicture.asset('assets/google_logo.svg', width: 22, height: 22),
             const SizedBox(width: 12),
             Text(
               loading ? 'Signing in...' : 'Continue with Google',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textPrimary),
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: colors.textPrimary,
+              ),
             ),
           ],
         ),
@@ -602,6 +858,7 @@ class _GoogleButton extends StatelessWidget {
 
 class _ErrorBanner extends StatelessWidget {
   const _ErrorBanner({required this.message});
+
   final String message;
 
   @override
@@ -617,7 +874,12 @@ class _ErrorBanner extends StatelessWidget {
         children: [
           const Icon(Icons.error_outline, color: kDanger, size: 16),
           const SizedBox(width: 8),
-          Expanded(child: Text(message, style: const TextStyle(color: kDanger, fontSize: 13))),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: kDanger, fontSize: 13),
+            ),
+          ),
         ],
       ),
     );

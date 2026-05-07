@@ -8,6 +8,7 @@ import 'package:hisabi/domain/entities/expense.dart';
 import 'package:hisabi/presentation/providers/expense_provider.dart';
 import 'package:hisabi/presentation/widgets/category_chip.dart';
 import 'package:hisabi/presentation/widgets/category_form_sheet.dart';
+import 'package:hisabi/presentation/widgets/date_picker_sheet.dart';
 import 'package:hisabi/presentation/widgets/next_field_bar.dart';
 import 'package:hisabi/utils/date_formatter.dart';
 import 'package:hisabi/utils/network_utils.dart';
@@ -168,7 +169,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
   void _setGrouped(bool toGrouped) {
     if (toGrouped == ref.read(_formProvider).isGrouped) return;
     if (toGrouped) {
-      _addItemRow();
+      _addItemRow(requestFocus: !_isEdit);
       _addItemRow();
     } else {
       for (final row in _itemRows.value) {
@@ -333,19 +334,23 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
 
   Future<void> _pickDate() async {
     final currentDate = ref.read(_formProvider).selectedDate;
-    final picked = await showDatePicker(
-      context: context,
+    final picked = await showCustomDatePicker(
+      context,
       initialDate: currentDate,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: Theme.of(context).colorScheme.copyWith(primary: kPrimary),
-        ),
-        child: child!,
-      ),
     );
-    if (picked != null) ref.read(_formProvider.notifier).selectDate(picked);
+
+    if (picked != null) {
+      ref.read(_formProvider.notifier).selectDate(picked);
+    }
+
+    // Prevent automatic focus restoration after bottom sheet dismisses
+    if (mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        FocusManager.instance.primaryFocus?.unfocus();
+      });
+    }
   }
 
   void _showAddCategorySheet() {
@@ -401,19 +406,27 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(child: ListView(
-        controller: _scrollCtrl,
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Column(
+          children: [
+            Expanded(child: ListView(
+          controller: _scrollCtrl,
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
         children: [
           // Mode toggle — only on new expense
           if (!_isEdit) ...[
             _ModeToggle(
               isGrouped: isGrouped,
               colors: colors,
-              onSingle: () => _setGrouped(false),
-              onList: () => _setGrouped(true),
+              onSingle: () {
+                FocusScope.of(context).unfocus();
+                _setGrouped(false);
+              },
+              onList: () {
+                FocusScope.of(context).unfocus();
+                _setGrouped(true);
+              },
             ),
             const SizedBox(height: 8),
           ],
@@ -577,7 +590,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
                         emoji: cat['emoji'] as String,
                         color: cat['color'] as Color,
                         selected: formState.selectedCategory == name,
-                        onTap: () => ref.read(_formProvider.notifier).selectCategory(name),
+                        onTap: () {
+                          FocusScope.of(context).unfocus();
+                          ref.read(_formProvider.notifier).selectCategory(name);
+                        },
                       );
                     }),
                     GestureDetector(
@@ -612,21 +628,23 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
             child: GestureDetector(
               onTap: _pickDate,
               behavior: HitTestBehavior.opaque,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _FieldLabel('DATE', colors),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Text(
-                        DateFormat('EEE, MMM d, yyyy').format(formState.selectedDate),
-                        style: TextStyle(fontSize: 15, color: colors.textPrimary),
-                      ),
-                      const Spacer(),
-                      Icon(Icons.calendar_today_outlined, size: 18, color: colors.textSec),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _FieldLabel('DATE', colors),
+                        const SizedBox(height: 8),
+                        Text(
+                          DateFormat('EEE, MMM d, yyyy').format(formState.selectedDate),
+                          style: TextStyle(fontSize: 15, color: colors.textPrimary),
+                        ),
+                      ],
+                    ),
                   ),
+                  Icon(Icons.calendar_today_outlined, size: 18, color: colors.textSec),
                 ],
               ),
             ),
@@ -722,6 +740,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
         },
       ),
     ],
+        ),
       ),
     );
   }

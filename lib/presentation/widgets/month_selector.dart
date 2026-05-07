@@ -5,28 +5,51 @@ import 'package:hisabi/presentation/providers/expense_provider.dart';
 import 'package:hisabi/utils/date_formatter.dart';
 
 class MonthSelector extends ConsumerWidget {
-  const MonthSelector({super.key});
+  const MonthSelector({super.key, this.todayButtonOnLeft = false});
+  final bool todayButtonOnLeft;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final month = ref.watch(selectedMonthProvider);
     final colors = context.appColors;
+    final now = DateTime.now();
+    final isCurrentMonth = month.year == now.year && month.month == now.month;
+
+    final todayButton = !isCurrentMonth
+        ? [
+            const SizedBox(width: 4),
+            _NavButton(
+              icon: Icons.today,
+              onTap: () {
+                FocusScope.of(context).unfocus();
+                ref.read(selectedMonthProvider.notifier).state =
+                    DateTime(now.year, now.month);
+              },
+            ),
+          ]
+        : <Widget>[];
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (todayButtonOnLeft) ...todayButton,
         _NavButton(
           icon: Icons.chevron_left,
           onTap: () => ref.read(selectedMonthProvider.notifier).state =
               DateTime(month.year, month.month - 1),
         ),
         const SizedBox(width: 4),
-        Text(
-          formatMonthYear(month),
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: colors.textPrimary,
+        SizedBox(
+          width: 120,
+          child: Center(
+            child: Text(
+              formatMonthYear(month),
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: colors.textPrimary,
+              ),
+            ),
           ),
         ),
         const SizedBox(width: 4),
@@ -35,6 +58,7 @@ class MonthSelector extends ConsumerWidget {
           onTap: () => ref.read(selectedMonthProvider.notifier).state =
               DateTime(month.year, month.month + 1),
         ),
+        if (!todayButtonOnLeft) ...todayButton,
       ],
     );
   }
@@ -48,7 +72,10 @@ class _NavButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        FocusScope.of(context).unfocus();
+        onTap();
+      },
       child: Container(
         width: 32,
         height: 32,

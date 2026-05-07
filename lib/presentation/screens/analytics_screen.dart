@@ -7,6 +7,8 @@ import 'package:hisabi/presentation/providers/expense_provider.dart';
 import 'package:hisabi/presentation/widgets/month_selector.dart';
 import 'package:hisabi/presentation/widgets/expense_detail_sheet.dart';
 import 'package:hisabi/presentation/widgets/expense_list_item.dart';
+import 'package:hisabi/presentation/widgets/empty_state.dart';
+import 'package:hisabi/presentation/widgets/shimmer_box.dart';
 import 'package:hisabi/utils/category_utils.dart';
 import 'package:hisabi/utils/network_utils.dart';
 import 'package:intl/intl.dart';
@@ -22,57 +24,116 @@ class AnalyticsScreen extends ConsumerWidget {
     final monthlyAsync = ref.watch(monthlyTotalProvider);
     final extraCategories = ref.watch(customCategoriesProvider).map((c) => c.toMap()).toList();
 
-    return expensesAsync.when(
-      data: (expenses) {
-        final total = monthlyAsync.valueOrNull ?? 0;
-        final breakdown = _buildBreakdown(expenses, extraCategories);
+    final isLoading = expensesAsync.isLoading;
+    final expenses = expensesAsync.valueOrNull ?? [];
+    final total = monthlyAsync.valueOrNull ?? 0;
+    final breakdown = _buildBreakdown(expenses, extraCategories);
 
-        return CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                  child: Row(
-                    children: [
-                      Text('Analytics',
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.textPrimary, letterSpacing: -0.5)),
-                      const Spacer(),
-                      const MonthSelector(),
-                    ],
+    return CustomScrollView(
+      slivers: [
+        // Header - always visible
+        SliverToBoxAdapter(
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: Row(
+                children: [
+                  Text('Analytics',
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: colors.textPrimary, letterSpacing: -0.5)),
+                  const Spacer(),
+                  const MonthSelector(todayButtonOnLeft: true),
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        // Overview card - always visible, show shimmer when loading
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [kPrimary, kPrimaryDark]),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [BoxShadow(color: kPrimary.withValues(alpha: 0.35), blurRadius: 24, offset: const Offset(0, 8))],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Total Spent', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xB3FFFFFF))),
+                  const SizedBox(height: 6),
+                  Text(
+                    NumberFormat.currency(symbol: currency, decimalDigits: 0).format(total),
+                    style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -1),
                   ),
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        if (isLoading) ...[
+          // Loading skeletons
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: colors.card,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 4))],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ShimmerBox(width: 150, height: 16, borderRadius: 8, key: ValueKey('title')),
+                    const SizedBox(height: 20),
+                    const Center(child: ShimmerBox(width: 200, height: 200, borderRadius: 100)),
+                  ],
                 ),
               ),
             ),
-
-            // Overview card
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [kPrimary, kPrimaryDark]),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [BoxShadow(color: kPrimary.withValues(alpha: 0.35), blurRadius: 24, offset: const Offset(0, 8))],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Total Spent', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xB3FFFFFF))),
-                      const SizedBox(height: 6),
-                      Text(
-                        NumberFormat.currency(symbol: currency, decimalDigits: 0).format(total),
-                        style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -1),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: colors.card,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 4))],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const ShimmerBox(width: 100, height: 16, borderRadius: 8),
+                    const SizedBox(height: 12),
+                    ...List.generate(
+                      4,
+                      (i) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          children: [
+                            const ShimmerBox(width: 40, height: 40, borderRadius: 20),
+                            const SizedBox(width: 12),
+                            const Expanded(child: ShimmerBox(width: double.infinity, height: 16, borderRadius: 8)),
+                            const SizedBox(width: 12),
+                            const ShimmerBox(width: 60, height: 16, borderRadius: 8),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
-
-            if (expenses.isEmpty) ...[
+          ),
+        ] else if (expenses.isEmpty) ...[
               SliverLayoutBuilder(
                 builder: (context, constraints) {
                   final compensate = (constraints.viewportMainAxisExtent - constraints.remainingPaintExtent) / 2;
@@ -80,15 +141,10 @@ class AnalyticsScreen extends ConsumerWidget {
                     hasScrollBody: false,
                     child: Transform.translate(
                       offset: Offset(0, -compensate),
-                      child: const Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('📊', style: TextStyle(fontSize: 64)),
-                            SizedBox(height: 16),
-                            Text('No data for this month', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                          ],
-                        ),
+                      child: const EmptyState(
+                        title: 'No data for this month',
+                        subtitle: null,
+                        icon: Icons.pie_chart_outline,
                       ),
                     ),
                   );
@@ -177,16 +233,23 @@ class AnalyticsScreen extends ConsumerWidget {
                             currency: currency,
                             total: total,
                             colors: colors,
-                            onTap: () => showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              backgroundColor: Colors.transparent,
-                              builder: (_) => _CategoryExpensesSheet(
-                                categoryName: cat.name,
-                                catColor: cat.color,
-                                catEmoji: cat.emoji,
-                              ),
-                            ),
+                            onTap: () async {
+                              await showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (_) => _CategoryExpensesSheet(
+                                  categoryName: cat.name,
+                                  catColor: cat.color,
+                                  catEmoji: cat.emoji,
+                                ),
+                              );
+                              if (context.mounted) {
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  FocusManager.instance.primaryFocus?.unfocus();
+                                });
+                              }
+                            },
                           );
                         }),
                       ],
@@ -196,10 +259,6 @@ class AnalyticsScreen extends ConsumerWidget {
               ),
             ],
           ],
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator(color: kPrimary)),
-      error: (_, __) => Center(child: Text('Failed to load', style: TextStyle(color: context.appColors.textSec))),
     );
   }
 
@@ -371,22 +430,24 @@ class _CategoryExpensesSheet extends ConsumerWidget {
                       .catchError((e) {
                         if (context.mounted) showNetworkSnackBar(context, e);
                       }),
-                  onTap: () => showExpenseDetailSheet(
-                    context,
-                    expense,
-                    currency,
-                    () => ref
-                        .read(expenseListProvider.notifier)
-                        .deleteExpense(expense.id)
-                        .catchError((e) {
+                  onTap: () {
+                    showExpenseDetailSheet(
+                      context,
+                      expense,
+                      currency,
+                      () => ref
+                          .read(expenseListProvider.notifier)
+                          .deleteExpense(expense.id)
+                          .catchError((e) {
                           if (context.mounted) showNetworkSnackBar(context, e);
                         }),
                     extraCategories: extraCategories,
-                  ),
-                );
-              },
-            ),
-          ),
+                  );
+                },
+            );
+          },
+        ),
+      ),
           SizedBox(height: MediaQuery.of(context).padding.bottom + 8),
         ],
       ),

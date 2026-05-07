@@ -31,10 +31,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _refresh() async {
-    ref.invalidate(expenseListProvider);
-    ref.invalidate(monthlyTotalProvider);
-    ref.invalidate(todayTotalProvider);
-    await ref.read(expenseListProvider.future);
+    final searchMode = ref.read(searchModeProvider);
+    if (searchMode) {
+      ref.invalidate(allExpensesProvider);
+      await ref.read(allExpensesProvider.future);
+    } else {
+      ref.invalidate(expenseListProvider);
+      ref.invalidate(monthlyTotalProvider);
+      ref.invalidate(todayTotalProvider);
+      await ref.read(expenseListProvider.future);
+    }
   }
 
   List<dynamic> _buildFlatList(
@@ -98,11 +104,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final currency = ref.watch(currencyProvider);
-    final expensesAsync = ref.watch(expenseListProvider);
+    final searchMode = ref.watch(searchModeProvider);
+    final expensesAsync = searchMode
+        ? ref.watch(allExpensesProvider)
+        : ref.watch(expenseListProvider);
     final monthlyAsync = ref.watch(monthlyTotalProvider);
     final todayAsync = ref.watch(todayTotalProvider);
     final selectedMonth = ref.watch(selectedMonthProvider);
-    final searchMode = ref.watch(searchModeProvider);
     final showAll = ref.watch(showAllTransactionsProvider);
     final query = ref.watch(searchQueryProvider);
     final categoryFilter = ref.watch(categoryFilterProvider);
@@ -200,8 +208,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       selectedCategory: categoryFilter,
                       extraCategories: extraCategories,
                       colors: colors,
-                      onSelected: (cat) =>
-                          ref.read(categoryFilterProvider.notifier).state = cat,
+                      onSelected: (cat) {
+                        FocusScope.of(context).unfocus();
+                        ref.read(categoryFilterProvider.notifier).state = cat;
+                      },
                     ),
                   );
                 },
@@ -300,24 +310,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       currency: currency,
                       animationIndex: animIdx,
                       extraCategories: extraCategories,
-                      onDelete: () => ref
-                          .read(expenseListProvider.notifier)
-                          .deleteExpense(expense.id)
-                          .catchError((e) {
-                            if (context.mounted) showNetworkSnackBar(context, e);
-                          }),
-                      onTap: () => showExpenseDetailSheet(
-                        context,
-                        expense,
-                        currency,
-                        () => ref
-                            .read(expenseListProvider.notifier)
-                            .deleteExpense(expense.id)
-                            .catchError((e) {
-                              if (context.mounted) showNetworkSnackBar(context, e);
-                            }),
-                        extraCategories: extraCategories,
-                      ),
+                      onDelete: () {
+                        if (searchMode) {
+                          ref
+                              .read(allExpensesProvider.notifier)
+                              .deleteExpense(expense.id)
+                              .catchError((e) {
+                                if (context.mounted) showNetworkSnackBar(context, e);
+                              });
+                        } else {
+                          ref
+                              .read(expenseListProvider.notifier)
+                              .deleteExpense(expense.id)
+                              .catchError((e) {
+                                if (context.mounted) showNetworkSnackBar(context, e);
+                              });
+                        }
+                      },
+                      onTap: () {
+                        showExpenseDetailSheet(
+                          context,
+                          expense,
+                          currency,
+                          () {
+                            if (searchMode) {
+                              ref
+                                  .read(allExpensesProvider.notifier)
+                                  .deleteExpense(expense.id)
+                                  .catchError((e) {
+                                    if (context.mounted) showNetworkSnackBar(context, e);
+                                  });
+                            } else {
+                              ref
+                                  .read(expenseListProvider.notifier)
+                                  .deleteExpense(expense.id)
+                                  .catchError((e) {
+                                    if (context.mounted) showNetworkSnackBar(context, e);
+                                  });
+                            }
+                          },
+                          extraCategories: extraCategories,
+                        );
+                      },
                     );
                   },
                 ),

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:hisabi/config/theme.dart';
 import 'package:hisabi/domain/entities/expense.dart';
+import 'package:hisabi/presentation/widgets/confirmation_sheet.dart';
 import 'package:hisabi/utils/category_utils.dart';
 import 'package:hisabi/utils/date_formatter.dart';
 import 'package:intl/intl.dart';
@@ -158,18 +159,12 @@ class _ExpenseListItemState extends State<ExpenseListItem> with SingleTickerProv
     );
   }
 
-  Future<bool?> _confirmDelete(BuildContext context) => showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Delete expense?'),
-          content: Text('Remove "${widget.expense.title}" permanently.'),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Delete', style: TextStyle(color: kDanger)),
-            ),
-          ],
-        ),
+  Future<bool?> _confirmDelete(BuildContext context) => showConfirmationSheet(
+        context,
+        title: 'Delete expense?',
+        message: 'Remove "${widget.expense.title}" permanently.',
+        confirmLabel: 'Delete',
+        isDangerous: true,
+        onConfirm: () {}, // Empty callback - Dismissible handles the actual delete
       );
 }

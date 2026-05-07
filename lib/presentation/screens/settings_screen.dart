@@ -7,6 +7,7 @@ import 'package:hisabi/config/theme.dart';
 import 'package:hisabi/presentation/providers/auth_provider.dart';
 import 'package:hisabi/presentation/providers/expense_provider.dart';
 import 'package:hisabi/presentation/widgets/category_form_sheet.dart';
+import 'package:hisabi/presentation/widgets/confirmation_sheet.dart';
 import 'package:hisabi/utils/network_utils.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -151,12 +152,14 @@ class SettingsScreen extends ConsumerWidget {
                   _CategorySettingsRow(
                     cat: cat,
                     colors: colors,
-                    onEdit: () => showCategoryFormSheet(
-                      context,
-                      initialCategory: cat,
-                      onSave: (updated) =>
-                          ref.read(customCategoriesProvider.notifier).update(cat.name, updated),
-                    ),
+                    onEdit: () {
+                      showCategoryFormSheet(
+                        context,
+                        initialCategory: cat,
+                        onSave: (updated) =>
+                            ref.read(customCategoriesProvider.notifier).update(cat.name, updated),
+                      );
+                    },
                     onDelete: () => _confirmDeleteCategory(context, ref, cat, colors),
                   ),
                 ];
@@ -187,42 +190,28 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _confirmSignOut(BuildContext context, WidgetRef ref, AppColors colors) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Sign out?'),
-        content: const Text('You will be returned to the sign in screen.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await ref.read(authRepositoryProvider).signOut();
-            },
-            child: const Text('Sign Out', style: TextStyle(color: kDanger)),
-          ),
-        ],
-      ),
+    showConfirmationSheet(
+      context,
+      title: 'Sign out?',
+      message: 'You will be returned to the sign in screen.',
+      confirmLabel: 'Sign Out',
+      isDangerous: true,
+      onConfirm: () async {
+        await ref.read(authRepositoryProvider).signOut();
+      },
     );
   }
 
   void _confirmDeleteCategory(BuildContext context, WidgetRef ref, CustomCategory cat, AppColors colors) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete category?'),
-        content: Text('Remove "${cat.name}"? Existing expenses won\'t be affected.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              ref.read(customCategoriesProvider.notifier).remove(cat.name);
-            },
-            child: const Text('Delete', style: TextStyle(color: kDanger)),
-          ),
-        ],
-      ),
+    showConfirmationSheet(
+      context,
+      title: 'Delete category?',
+      message: 'Remove "${cat.name}"? Existing expenses won\'t be affected.',
+      confirmLabel: 'Delete',
+      isDangerous: true,
+      onConfirm: () {
+        ref.read(customCategoriesProvider.notifier).remove(cat.name);
+      },
     );
   }
 
@@ -336,59 +325,45 @@ class _SettingsRow extends StatelessWidget {
   );
 }
 
-class _ClearDataRow extends ConsumerStatefulWidget {
+class _ClearDataRow extends ConsumerWidget {
   const _ClearDataRow({required this.colors});
   final AppColors colors;
 
   @override
-  ConsumerState<_ClearDataRow> createState() => _ClearDataRowState();
-}
-
-class _ClearDataRowState extends ConsumerState<_ClearDataRow> {
-  final _confirming = ValueNotifier<bool>(false);
-
-  @override
-  void dispose() {
-    _confirming.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: _confirming,
-      builder: (context, confirming, _) {
-        return _SettingsRow(
-          icon: Icons.delete_sweep_outlined,
-          iconBg: kDanger.withValues(alpha: 0.1),
-          label: confirming ? 'Tap again to confirm' : 'Clear All Data',
-          colors: widget.colors,
-          isDestructive: true,
-          onTap: () async {
-            if (confirming) {
-              _confirming.value = false;
-              try {
-                await ref.read(expenseListProvider.notifier).clearAll();
-                await ref.read(customCategoriesProvider.notifier).clearAll();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text('All data cleared'),
-                      backgroundColor: kDanger,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return _SettingsRow(
+      icon: Icons.delete_sweep_outlined,
+      iconBg: kDanger.withValues(alpha: 0.1),
+      label: 'Clear All Data',
+      colors: colors,
+      isDestructive: true,
+      onTap: () {
+        showConfirmationSheet(
+          context,
+          title: 'Clear all data?',
+          message: 'This will permanently delete all expenses and custom categories. This action cannot be undone.',
+          confirmLabel: 'Clear All',
+          isDangerous: true,
+          onConfirm: () async {
+            try {
+              await ref.read(expenseListProvider.notifier).clearAll();
+              await ref.read(customCategoriesProvider.notifier).clearAll();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text(
+                      'All data cleared',
+                      style: TextStyle(color: Colors.white),
                     ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) showNetworkSnackBar(context, e);
+                    backgroundColor: kDanger,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  ),
+                );
               }
-            } else {
-              _confirming.value = true;
-              Future.delayed(const Duration(seconds: 3), () {
-                if (context.mounted) _confirming.value = false;
-              });
+            } catch (e) {
+              if (context.mounted) showNetworkSnackBar(context, e);
             }
           },
         );

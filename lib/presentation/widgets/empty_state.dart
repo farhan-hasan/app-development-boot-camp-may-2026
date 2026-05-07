@@ -2,7 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:hisabi/config/theme.dart';
 
 class EmptyState extends StatefulWidget {
-  const EmptyState({super.key});
+  const EmptyState({
+    super.key,
+    this.title = 'No expenses yet',
+    this.subtitle = 'Tap + to add your first expense',
+    this.icon = Icons.account_balance_wallet_outlined,
+  });
+
+  final String title;
+  final String? subtitle;
+  final IconData icon;
 
   @override
   State<EmptyState> createState() => _EmptyStateState();
@@ -35,18 +44,20 @@ class _EmptyStateState extends State<EmptyState> with SingleTickerProviderStateM
           AnimatedBuilder(
             animation: _anim,
             builder: (_, child) => Transform.translate(offset: Offset(0, _anim.value), child: child),
-            child: Icon(Icons.account_balance_wallet_outlined, size: 80, color: colors.border),
+            child: Icon(widget.icon, size: 80, color: colors.border),
           ),
           const SizedBox(height: 20),
           Text(
-            'No expenses yet',
+            widget.title,
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Tap + to add your first expense',
-            style: TextStyle(fontSize: 14, color: colors.textSec),
-          ),
+          if (widget.subtitle != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              widget.subtitle!,
+              style: TextStyle(fontSize: 14, color: colors.textSec),
+            ),
+          ],
         ],
       ),
     );

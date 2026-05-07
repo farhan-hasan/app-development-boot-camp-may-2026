@@ -42,7 +42,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           return GestureDetector(
             onHorizontalDragEnd: (details) {
               final v = details.primaryVelocity ?? 0;
-              if (v < -200 && index < 2) goTo(index + 1);
+              if (v < -200 && index < 4) goTo(index + 1);
               if (v > 200 && index > 0) goTo(index - 1);
             },
             child: Column(
@@ -63,7 +63,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(3, (i) {
+                          children: List.generate(5, (i) {
                             final active = i == index;
                             return GestureDetector(
                               onTap: () => goTo(i),
@@ -83,18 +83,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         const Spacer(),
                         Row(
                           children: [
-                            if (index < 2) ...[
+                            if (index < 4) ...[
                               Expanded(
                                 child: _OBButton(label: 'Skip', isSecondary: true, onTap: complete),
                               ),
                               const SizedBox(width: 12),
                             ],
                             Expanded(
-                              flex: index < 2 ? 2 : 1,
+                              flex: index < 4 ? 2 : 1,
                               child: _OBButton(
-                                label: index < 2 ? 'Next' : 'Get Started',
+                                label: index < 4 ? 'Next' : 'Get Started',
                                 accent: accent,
-                                onTap: index < 2 ? () => goTo(index + 1) : complete,
+                                onTap: index < 4 ? () => goTo(index + 1) : complete,
                               ),
                             ),
                           ],

@@ -6,7 +6,7 @@ part of 'expense_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$monthlyTotalHash() => r'06d6132d209b74203faf2b1ad403c8ea21f7f076';
+String _$monthlyTotalHash() => r'9d829330ec772979b1e2828635c53263e0aa517a';
 
 /// See also [monthlyTotal].
 @ProviderFor(monthlyTotal)
@@ -40,7 +40,7 @@ final todayTotalProvider = AutoDisposeFutureProvider<double>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TodayTotalRef = AutoDisposeFutureProviderRef<double>;
-String _$expenseListHash() => r'fef3997df0349c3e40b4a485bdc26646e81b09ca';
+String _$expenseListHash() => r'14de092d3b3c8082dfd119de7a300cd8a755cfd4';
 
 /// See also [ExpenseList].
 @ProviderFor(ExpenseList)
@@ -56,5 +56,21 @@ final expenseListProvider =
     );
 
 typedef _$ExpenseList = AutoDisposeAsyncNotifier<List<Expense>>;
+String _$allExpensesHash() => r'4cfd5bd27b48dfdb1cfd5ef6cce82eff496fe292';
+
+/// See also [AllExpenses].
+@ProviderFor(AllExpenses)
+final allExpensesProvider =
+    AutoDisposeAsyncNotifierProvider<AllExpenses, List<Expense>>.internal(
+      AllExpenses.new,
+      name: r'allExpensesProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$allExpensesHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$AllExpenses = AutoDisposeAsyncNotifier<List<Expense>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
