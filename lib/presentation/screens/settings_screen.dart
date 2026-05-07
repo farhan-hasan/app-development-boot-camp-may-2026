@@ -120,6 +120,14 @@ class SettingsScreen extends ConsumerWidget {
               sublabel: '1.0.0',
               colors: colors,
             ),
+            Divider(color: colors.border, height: 1, indent: 68, endIndent: 16),
+            _SettingsRow(
+              icon: Icons.auto_stories_outlined,
+              iconBg: colors.cardAlt,
+              label: 'How It Works',
+              colors: colors,
+              onTap: () => context.push('/onboarding'),
+            ),
           ]),
 
           _SectionHeader('CATEGORIES', colors),

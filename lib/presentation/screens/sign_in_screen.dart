@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hisabi/config/theme.dart';
 import 'package:hisabi/presentation/providers/auth_provider.dart';
+import 'package:hisabi/presentation/widgets/next_field_bar.dart';
 
 class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
@@ -18,9 +19,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   final _passwordCtrl = TextEditingController();
   final _emailFocus = FocusNode();
   final _passwordFocus = FocusNode();
-  bool _obscure = true;
-  bool _loading = false;
-  String? _error;
+  final _obscure = ValueNotifier<bool>(true);
+  final _loading = ValueNotifier<bool>(false);
+  final _googleLoading = ValueNotifier<bool>(false);
+  final _error = ValueNotifier<String?>(null);
 
   @override
   void dispose() {
@@ -28,6 +30,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     _passwordCtrl.dispose();
     _emailFocus.dispose();
     _passwordFocus.dispose();
+    _obscure.dispose();
+    _loading.dispose();
+    _googleLoading.dispose();
+    _error.dispose();
     super.dispose();
   }
 
@@ -54,34 +60,37 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     final email = _emailCtrl.text.trim();
     final password = _passwordCtrl.text;
     if (email.isEmpty || password.isEmpty) {
-      setState(() => _error = 'Please fill in all fields');
+      _error.value = 'Please fill in all fields';
       return;
     }
-    setState(() { _loading = true; _error = null; });
+    _loading.value = true;
+    _error.value = null;
     try {
       await ref.read(authRepositoryProvider).signInWithEmailPassword(email, password);
     } on FirebaseAuthException catch (e) {
-      if (mounted) { setState(() { _error = _mapError(e); _loading = false; }); }
+      if (mounted) { _error.value = _mapError(e); _loading.value = false; }
     } catch (_) {
-      if (mounted) { setState(() { _error = 'Something went wrong'; _loading = false; }); }
+      if (mounted) { _error.value = 'Something went wrong'; _loading.value = false; }
     }
   }
 
   Future<void> _signInWithGoogle() async {
-    setState(() { _loading = true; _error = null; });
+    _error.value = null;
     try {
-      await ref.read(authRepositoryProvider).signInWithGoogle();
+      await ref.read(authRepositoryProvider).signInWithGoogle(
+        onAccountSelected: () { if (mounted) _googleLoading.value = true; },
+      );
     } on FirebaseAuthException catch (e) {
-      if (mounted) { setState(() { _error = _mapError(e); _loading = false; }); }
+      if (mounted) { _error.value = _mapError(e); _googleLoading.value = false; }
     } catch (e) {
-      if (mounted) { setState(() { _error = e.toString().contains('cancelled') ? null : 'Google sign-in failed'; _loading = false; }); }
+      if (mounted) { _error.value = e.toString().contains('cancelled') ? null : 'Google sign-in failed'; _googleLoading.value = false; }
     }
   }
 
   Future<void> _forgotPassword() async {
     final email = _emailCtrl.text.trim();
     if (email.isEmpty) {
-      setState(() => _error = 'Enter your email address first');
+      _error.value = 'Enter your email address first';
       return;
     }
     try {
@@ -96,116 +105,116 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         ));
       }
     } catch (_) {
-      if (mounted) setState(() => _error = 'Failed to send reset email');
+      if (mounted) _error.value = 'Failed to send reset email';
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-
-    return Scaffold(
-      backgroundColor: colors.bg,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
+    return ListenableBuilder(
+      listenable: Listenable.merge([_obscure, _loading, _googleLoading, _error]),
+      builder: (_, __) => Scaffold(
+        backgroundColor: colors.bg,
+        body: SafeArea(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(
-                child: Image.asset('assets/icon/app_icon.png', width: 88, height: 88),
-              ),
-              const SizedBox(height: 28),
-              Text(
-                'Welcome back',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: colors.textPrimary, letterSpacing: -0.5),
-              ),
-              const SizedBox(height: 6),
-              Text('Sign in to continue', style: TextStyle(fontSize: 15, color: colors.textSec)),
-              const SizedBox(height: 36),
-
-              _AuthField(
-                label: 'Email',
-                icon: Icons.email_outlined,
-                controller: _emailCtrl,
-                focusNode: _emailFocus,
-                keyboardType: TextInputType.emailAddress,
-                textInputAction: TextInputAction.next,
-                onSubmitted: (_) => _passwordFocus.requestFocus(),
-                colors: colors,
-              ),
-              const SizedBox(height: 12),
-
-              _AuthField(
-                label: 'Password',
-                icon: Icons.lock_outline,
-                controller: _passwordCtrl,
-                focusNode: _passwordFocus,
-                obscureText: _obscure,
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) => _loading ? null : _signIn(),
-                colors: colors,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                    color: colors.textSec,
-                    size: 20,
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(child: Image.asset('assets/icon/app_icon.png', width: 88, height: 88)),
+                      const SizedBox(height: 28),
+                      Text('Welcome back', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: colors.textPrimary, letterSpacing: -0.5)),
+                      const SizedBox(height: 6),
+                      Text('Sign in to continue', style: TextStyle(fontSize: 15, color: colors.textSec)),
+                      const SizedBox(height: 36),
+                      _AuthField(
+                        label: 'Email',
+                        icon: Icons.email_outlined,
+                        controller: _emailCtrl,
+                        focusNode: _emailFocus,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        onSubmitted: (_) => _passwordFocus.requestFocus(),
+                        colors: colors,
+                      ),
+                      const SizedBox(height: 12),
+                      _AuthField(
+                        label: 'Password',
+                        icon: Icons.lock_outline,
+                        controller: _passwordCtrl,
+                        focusNode: _passwordFocus,
+                        obscureText: _obscure.value,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _loading.value ? null : _signIn(),
+                        colors: colors,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscure.value ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                            color: colors.textSec,
+                            size: 20,
+                          ),
+                          onPressed: () => _obscure.value = !_obscure.value,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: _loading.value ? null : _forgotPassword,
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text('Forgot password?', style: TextStyle(fontSize: 13, color: kPrimary, fontWeight: FontWeight.w600)),
+                        ),
+                      ),
+                      if (_error.value != null) ...[
+                        const SizedBox(height: 8),
+                        _ErrorBanner(message: _error.value!),
+                      ],
+                      const SizedBox(height: 20),
+                      _PrimaryButton(label: 'Sign In', loading: _loading.value, onTap: _loading.value ? null : _signIn),
+                      const SizedBox(height: 24),
+                      Row(children: [
+                        Expanded(child: Divider(color: colors.border)),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          child: Text('or', style: TextStyle(fontSize: 13, color: colors.textSec)),
+                        ),
+                        Expanded(child: Divider(color: colors.border)),
+                      ]),
+                      const SizedBox(height: 24),
+                      _GoogleButton(loading: _googleLoading.value, onTap: (_loading.value || _googleLoading.value) ? null : _signInWithGoogle, colors: colors),
+                      const SizedBox(height: 40),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text("Don't have an account? ", style: TextStyle(fontSize: 14, color: colors.textSec)),
+                          GestureDetector(
+                            onTap: () => context.push('/sign-up'),
+                            child: const Text('Sign up', style: TextStyle(fontSize: 14, color: kPrimary, fontWeight: FontWeight.w700)),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  onPressed: () => setState(() => _obscure = !_obscure),
                 ),
               ),
-              const SizedBox(height: 4),
-
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: _loading ? null : _forgotPassword,
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: const Text(
-                    'Forgot password?',
-                    style: TextStyle(fontSize: 13, color: kPrimary, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-
-              if (_error != null) ...[
-                const SizedBox(height: 8),
-                _ErrorBanner(message: _error!),
-              ],
-              const SizedBox(height: 20),
-
-              _PrimaryButton(
-                label: 'Sign In',
-                loading: _loading,
-                onTap: _loading ? null : _signIn,
-              ),
-              const SizedBox(height: 24),
-
-              Row(children: [
-                Expanded(child: Divider(color: colors.border)),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  child: Text('or', style: TextStyle(fontSize: 13, color: colors.textSec)),
-                ),
-                Expanded(child: Divider(color: colors.border)),
-              ]),
-              const SizedBox(height: 24),
-
-              _GoogleButton(loading: _loading, onTap: _loading ? null : _signInWithGoogle, colors: colors),
-              const SizedBox(height: 40),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Don't have an account? ", style: TextStyle(fontSize: 14, color: colors.textSec)),
-                  GestureDetector(
-                    onTap: () => context.push('/sign-up'),
-                    child: const Text('Sign up', style: TextStyle(fontSize: 14, color: kPrimary, fontWeight: FontWeight.w700)),
-                  ),
-                ],
+              ListenableBuilder(
+                listenable: Listenable.merge([_emailFocus, _passwordFocus]),
+                builder: (ctx, __) {
+                  if (_emailFocus.hasFocus) {
+                    return NextFieldBar(colors: colors, onNext: () => _passwordFocus.requestFocus());
+                  }
+                  if (_passwordFocus.hasFocus) {
+                    return NextFieldBar(colors: colors, onNext: () => FocusScope.of(ctx).unfocus());
+                  }
+                  return const SizedBox.shrink();
+                },
               ),
             ],
           ),
@@ -235,10 +244,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _emailFocus = FocusNode();
   final _passwordFocus = FocusNode();
   final _confirmFocus = FocusNode();
-  bool _obscurePassword = true;
-  bool _obscureConfirm = true;
-  bool _loading = false;
-  String? _error;
+  final _obscurePassword = ValueNotifier<bool>(true);
+  final _obscureConfirm = ValueNotifier<bool>(true);
+  final _loading = ValueNotifier<bool>(false);
+  final _googleLoading = ValueNotifier<bool>(false);
+  final _error = ValueNotifier<String?>(null);
 
   @override
   void dispose() {
@@ -250,6 +260,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     _emailFocus.dispose();
     _passwordFocus.dispose();
     _confirmFocus.dispose();
+    _obscurePassword.dispose();
+    _obscureConfirm.dispose();
+    _loading.dispose();
+    _googleLoading.dispose();
+    _error.dispose();
     super.dispose();
   }
 
@@ -275,171 +290,184 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     final confirm = _confirmCtrl.text;
 
     if (name.isEmpty || email.isEmpty || password.isEmpty || confirm.isEmpty) {
-      setState(() => _error = 'Please fill in all fields');
+      _error.value = 'Please fill in all fields';
       return;
     }
     if (password != confirm) {
-      setState(() => _error = 'Passwords do not match');
+      _error.value = 'Passwords do not match';
       return;
     }
     if (password.length < 6) {
-      setState(() => _error = 'Password must be at least 6 characters');
+      _error.value = 'Password must be at least 6 characters';
       return;
     }
 
-    setState(() { _loading = true; _error = null; });
+    _loading.value = true;
+    _error.value = null;
     try {
       await ref.read(authRepositoryProvider).signUpWithEmailPassword(email, password, name);
     } on FirebaseAuthException catch (e) {
-      if (mounted) { setState(() { _error = _mapError(e); _loading = false; }); }
+      if (mounted) { _error.value = _mapError(e); _loading.value = false; }
     } catch (_) {
-      if (mounted) { setState(() { _error = 'Something went wrong'; _loading = false; }); }
+      if (mounted) { _error.value = 'Something went wrong'; _loading.value = false; }
     }
   }
 
   Future<void> _signInWithGoogle() async {
-    setState(() { _loading = true; _error = null; });
+    _error.value = null;
     try {
-      await ref.read(authRepositoryProvider).signInWithGoogle();
+      await ref.read(authRepositoryProvider).signInWithGoogle(
+        onAccountSelected: () { if (mounted) _googleLoading.value = true; },
+      );
     } on FirebaseAuthException catch (e) {
-      if (mounted) { setState(() { _error = e.message; _loading = false; }); }
+      if (mounted) { _error.value = e.message; _googleLoading.value = false; }
     } catch (e) {
-      if (mounted) { setState(() { _error = e.toString().contains('cancelled') ? null : 'Google sign-in failed'; _loading = false; }); }
+      if (mounted) { _error.value = e.toString().contains('cancelled') ? null : 'Google sign-in failed'; _googleLoading.value = false; }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-
-    return Scaffold(
-      backgroundColor: colors.bg,
-      appBar: AppBar(
+    return ListenableBuilder(
+      listenable: Listenable.merge([_obscurePassword, _obscureConfirm, _loading, _googleLoading, _error]),
+      builder: (_, __) => Scaffold(
         backgroundColor: colors.bg,
-        elevation: 0,
-        leading: GestureDetector(
-          onTap: () => context.pop(),
-          child: Container(
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: colors.cardAlt, borderRadius: BorderRadius.circular(10)),
-            child: Icon(Icons.arrow_back_ios_new, size: 16, color: colors.textPrimary),
+        appBar: AppBar(
+          backgroundColor: colors.bg,
+          elevation: 0,
+          leading: GestureDetector(
+            onTap: () => context.pop(),
+            child: Container(
+              margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: colors.cardAlt, borderRadius: BorderRadius.circular(10)),
+              child: Icon(Icons.arrow_back_ios_new, size: 16, color: colors.textPrimary),
+            ),
           ),
+          title: Text('Create Account', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: colors.textPrimary)),
         ),
-        title: Text('Create Account', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: colors.textPrimary)),
-      ),
-      body: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+        body: SafeArea(
+          top: false,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                'Join Hisabi',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: colors.textPrimary, letterSpacing: -0.5),
-              ),
-              const SizedBox(height: 6),
-              Text('Start tracking your expenses today', style: TextStyle(fontSize: 15, color: colors.textSec)),
-              const SizedBox(height: 32),
-
-              _AuthField(
-                label: 'Full Name',
-                icon: Icons.person_outline,
-                controller: _nameCtrl,
-                focusNode: _nameFocus,
-                keyboardType: TextInputType.name,
-                textInputAction: TextInputAction.next,
-                onSubmitted: (_) => _emailFocus.requestFocus(),
-                colors: colors,
-              ),
-              const SizedBox(height: 12),
-
-              _AuthField(
-                label: 'Email',
-                icon: Icons.email_outlined,
-                controller: _emailCtrl,
-                focusNode: _emailFocus,
-                keyboardType: TextInputType.emailAddress,
-                textInputAction: TextInputAction.next,
-                onSubmitted: (_) => _passwordFocus.requestFocus(),
-                colors: colors,
-              ),
-              const SizedBox(height: 12),
-
-              _AuthField(
-                label: 'Password',
-                icon: Icons.lock_outline,
-                controller: _passwordCtrl,
-                focusNode: _passwordFocus,
-                obscureText: _obscurePassword,
-                textInputAction: TextInputAction.next,
-                onSubmitted: (_) => _confirmFocus.requestFocus(),
-                colors: colors,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                    color: colors.textSec,
-                    size: 20,
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text('Join Hisabi', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: colors.textPrimary, letterSpacing: -0.5)),
+                      const SizedBox(height: 6),
+                      Text('Start tracking your expenses today', style: TextStyle(fontSize: 15, color: colors.textSec)),
+                      const SizedBox(height: 32),
+                      _AuthField(
+                        label: 'Full Name',
+                        icon: Icons.person_outline,
+                        controller: _nameCtrl,
+                        focusNode: _nameFocus,
+                        keyboardType: TextInputType.name,
+                        textInputAction: TextInputAction.next,
+                        onSubmitted: (_) => _emailFocus.requestFocus(),
+                        colors: colors,
+                      ),
+                      const SizedBox(height: 12),
+                      _AuthField(
+                        label: 'Email',
+                        icon: Icons.email_outlined,
+                        controller: _emailCtrl,
+                        focusNode: _emailFocus,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        onSubmitted: (_) => _passwordFocus.requestFocus(),
+                        colors: colors,
+                      ),
+                      const SizedBox(height: 12),
+                      _AuthField(
+                        label: 'Password',
+                        icon: Icons.lock_outline,
+                        controller: _passwordCtrl,
+                        focusNode: _passwordFocus,
+                        obscureText: _obscurePassword.value,
+                        textInputAction: TextInputAction.next,
+                        onSubmitted: (_) => _confirmFocus.requestFocus(),
+                        colors: colors,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword.value ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                            color: colors.textSec,
+                            size: 20,
+                          ),
+                          onPressed: () => _obscurePassword.value = !_obscurePassword.value,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _AuthField(
+                        label: 'Confirm Password',
+                        icon: Icons.lock_outline,
+                        controller: _confirmCtrl,
+                        focusNode: _confirmFocus,
+                        obscureText: _obscureConfirm.value,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _loading.value ? null : _signUp(),
+                        colors: colors,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureConfirm.value ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                            color: colors.textSec,
+                            size: 20,
+                          ),
+                          onPressed: () => _obscureConfirm.value = !_obscureConfirm.value,
+                        ),
+                      ),
+                      if (_error.value != null) ...[
+                        const SizedBox(height: 16),
+                        _ErrorBanner(message: _error.value!),
+                      ],
+                      const SizedBox(height: 24),
+                      _PrimaryButton(label: 'Create Account', loading: _loading.value, onTap: _loading.value ? null : _signUp),
+                      const SizedBox(height: 24),
+                      Row(children: [
+                        Expanded(child: Divider(color: colors.border)),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          child: Text('or', style: TextStyle(fontSize: 13, color: colors.textSec)),
+                        ),
+                        Expanded(child: Divider(color: colors.border)),
+                      ]),
+                      const SizedBox(height: 24),
+                      _GoogleButton(loading: _googleLoading.value, onTap: (_loading.value || _googleLoading.value) ? null : _signInWithGoogle, colors: colors),
+                      const SizedBox(height: 36),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Already have an account? ', style: TextStyle(fontSize: 14, color: colors.textSec)),
+                          GestureDetector(
+                            onTap: () => context.pop(),
+                            child: const Text('Sign in', style: TextStyle(fontSize: 14, color: kPrimary, fontWeight: FontWeight.w700)),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
-              const SizedBox(height: 12),
-
-              _AuthField(
-                label: 'Confirm Password',
-                icon: Icons.lock_outline,
-                controller: _confirmCtrl,
-                focusNode: _confirmFocus,
-                obscureText: _obscureConfirm,
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) => _loading ? null : _signUp(),
-                colors: colors,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                    color: colors.textSec,
-                    size: 20,
-                  ),
-                  onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
-                ),
-              ),
-
-              if (_error != null) ...[
-                const SizedBox(height: 16),
-                _ErrorBanner(message: _error!),
-              ],
-              const SizedBox(height: 24),
-
-              _PrimaryButton(
-                label: 'Create Account',
-                loading: _loading,
-                onTap: _loading ? null : _signUp,
-              ),
-              const SizedBox(height: 24),
-
-              Row(children: [
-                Expanded(child: Divider(color: colors.border)),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  child: Text('or', style: TextStyle(fontSize: 13, color: colors.textSec)),
-                ),
-                Expanded(child: Divider(color: colors.border)),
-              ]),
-              const SizedBox(height: 24),
-
-              _GoogleButton(loading: _loading, onTap: _loading ? null : _signInWithGoogle, colors: colors),
-              const SizedBox(height: 36),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Already have an account? ', style: TextStyle(fontSize: 14, color: colors.textSec)),
-                  GestureDetector(
-                    onTap: () => context.pop(),
-                    child: const Text('Sign in', style: TextStyle(fontSize: 14, color: kPrimary, fontWeight: FontWeight.w700)),
-                  ),
-                ],
+              ListenableBuilder(
+                listenable: Listenable.merge([_nameFocus, _emailFocus, _passwordFocus, _confirmFocus]),
+                builder: (ctx, __) {
+                  if (_nameFocus.hasFocus) {
+                    return NextFieldBar(colors: colors, onNext: () => _emailFocus.requestFocus());
+                  }
+                  if (_emailFocus.hasFocus) {
+                    return NextFieldBar(colors: colors, onNext: () => _passwordFocus.requestFocus());
+                  }
+                  if (_passwordFocus.hasFocus) {
+                    return NextFieldBar(colors: colors, onNext: () => _confirmFocus.requestFocus());
+                  }
+                  if (_confirmFocus.hasFocus) {
+                    return NextFieldBar(colors: colors, onNext: () => FocusScope.of(ctx).unfocus());
+                  }
+                  return const SizedBox.shrink();
+                },
               ),
             ],
           ),
@@ -556,9 +584,15 @@ class _GoogleButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SvgPicture.asset('assets/google_logo.svg', width: 22, height: 22),
+            if (loading)
+              SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: kPrimary))
+            else
+              SvgPicture.asset('assets/google_logo.svg', width: 22, height: 22),
             const SizedBox(width: 12),
-            Text('Continue with Google', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textPrimary)),
+            Text(
+              loading ? 'Signing in...' : 'Continue with Google',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textPrimary),
+            ),
           ],
         ),
       ),

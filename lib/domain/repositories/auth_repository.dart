@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hisabi/domain/entities/app_user.dart';
 
 abstract class AuthRepository {
@@ -5,6 +6,6 @@ abstract class AuthRepository {
   AppUser? get currentUser;
   Future<AppUser> signInWithEmailPassword(String email, String password);
   Future<AppUser> signUpWithEmailPassword(String email, String password, String name);
-  Future<AppUser> signInWithGoogle();
+  Future<AppUser> signInWithGoogle({VoidCallback? onAccountSelected});
   Future<void> signOut();
 }

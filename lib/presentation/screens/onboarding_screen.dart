@@ -5,17 +5,25 @@ import 'package:hisabi/config/constants.dart';
 import 'package:hisabi/config/theme.dart';
 import 'package:hisabi/presentation/providers/expense_provider.dart';
 
-class OnboardingScreen extends ConsumerWidget {
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final index = ref.watch(onboardingPageProvider);
-    final slides = AppConstants.onboardingSlides;
-    final slide = slides[index];
-    final accent = slide['accent'] as Color;
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
+}
 
-    void goTo(int i) => ref.read(onboardingPageProvider.notifier).state = i;
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
+  final _page = ValueNotifier<int>(0);
+
+  @override
+  void dispose() {
+    _page.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final slides = AppConstants.onboardingSlides;
 
     Future<void> complete() async {
       await ref.read(onboardingCompletedProvider.notifier).complete();
@@ -23,69 +31,82 @@ class OnboardingScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      body: Column(
-        children: [
-          // Hero area (~65%) — AnimatedSwitcher gives crossfade on slide change
-          Expanded(
-            flex: 65,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 400),
-              child: _HeroArea(key: ValueKey(index), slide: slide),
-            ),
-          ),
+      body: ValueListenableBuilder<int>(
+        valueListenable: _page,
+        builder: (context, index, _) {
+          final slide = slides[index];
+          final accent = slide['accent'] as Color;
 
-          // Bottom panel (~35%)
-          Expanded(
-            flex: 35,
-            child: Container(
-              color: context.appColors.bg,
-              padding: const EdgeInsets.fromLTRB(24, 28, 24, 40),
-              child: Column(
-                children: [
-                  // Progress dots
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(3, (i) {
-                      final active = i == index;
-                      return GestureDetector(
-                        onTap: () => goTo(i),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          width: active ? 24 : 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(4),
-                            color: active ? accent : context.appColors.border,
-                          ),
-                        ),
-                      );
-                    }),
+          void goTo(int i) => _page.value = i;
+
+          return GestureDetector(
+            onHorizontalDragEnd: (details) {
+              final v = details.primaryVelocity ?? 0;
+              if (v < -200 && index < 2) goTo(index + 1);
+              if (v > 200 && index > 0) goTo(index - 1);
+            },
+            child: Column(
+              children: [
+                Expanded(
+                  flex: 65,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 400),
+                    child: _HeroArea(key: ValueKey(index), slide: slide),
                   ),
-                  const Spacer(),
-                  Row(
-                    children: [
-                      if (index < 2) ...[
-                        Expanded(
-                          child: _OBButton(label: 'Skip', isSecondary: true, onTap: complete),
+                ),
+                Expanded(
+                  flex: 35,
+                  child: Container(
+                    color: context.appColors.bg,
+                    padding: const EdgeInsets.fromLTRB(24, 28, 24, 40),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(3, (i) {
+                            final active = i == index;
+                            return GestureDetector(
+                              onTap: () => goTo(i),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                margin: const EdgeInsets.symmetric(horizontal: 4),
+                                width: active ? 24 : 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(4),
+                                  color: active ? accent : context.appColors.border,
+                                ),
+                              ),
+                            );
+                          }),
                         ),
-                        const SizedBox(width: 12),
+                        const Spacer(),
+                        Row(
+                          children: [
+                            if (index < 2) ...[
+                              Expanded(
+                                child: _OBButton(label: 'Skip', isSecondary: true, onTap: complete),
+                              ),
+                              const SizedBox(width: 12),
+                            ],
+                            Expanded(
+                              flex: index < 2 ? 2 : 1,
+                              child: _OBButton(
+                                label: index < 2 ? 'Next' : 'Get Started',
+                                accent: accent,
+                                onTap: index < 2 ? () => goTo(index + 1) : complete,
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
-                      Expanded(
-                        flex: index < 2 ? 2 : 1,
-                        child: _OBButton(
-                          label: index < 2 ? 'Next' : 'Get Started',
-                          accent: accent,
-                          onTap: index < 2 ? () => goTo(index + 1) : complete,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

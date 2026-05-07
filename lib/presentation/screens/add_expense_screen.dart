@@ -8,6 +8,7 @@ import 'package:hisabi/domain/entities/expense.dart';
 import 'package:hisabi/presentation/providers/expense_provider.dart';
 import 'package:hisabi/presentation/widgets/category_chip.dart';
 import 'package:hisabi/presentation/widgets/category_form_sheet.dart';
+import 'package:hisabi/presentation/widgets/next_field_bar.dart';
 import 'package:hisabi/utils/date_formatter.dart';
 import 'package:hisabi/utils/network_utils.dart';
 import 'package:intl/intl.dart';
@@ -49,7 +50,12 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
   final _noteFocus = FocusNode();
   late final AnimationController _shakeCtrl;
   late final Animation<double> _shakeAnim;
-  final _itemRows = <_ItemRow>[];
+  final _scrollCtrl = ScrollController();
+  final _categoryKey = GlobalKey();
+  final _itemRows = ValueNotifier<List<_ItemRow>>([]);
+  final _itemsTotal = ValueNotifier<double>(0);
+  final _anyItemAmountFocused = ValueNotifier<bool>(false);
+  final _anyItemNameFocused = ValueNotifier<bool>(false);
 
   bool get _isEdit => widget.existingExpense != null;
 
@@ -93,8 +99,13 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
     _amountFocus.dispose();
     _titleFocus.dispose();
     _noteFocus.dispose();
+    _scrollCtrl.dispose();
     _shakeCtrl.dispose();
-    for (final row in _itemRows) { row.dispose(); }
+    for (final row in _itemRows.value) { row.dispose(); }
+    _itemRows.dispose();
+    _itemsTotal.dispose();
+    _anyItemAmountFocused.dispose();
+    _anyItemNameFocused.dispose();
     super.dispose();
   }
 
@@ -102,7 +113,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
     final row = _ItemRow(name, amount);
     row.name.addListener(_onItemChanged);
     row.amount.addListener(_onItemChanged);
-    setState(() => _itemRows.add(row));
+    row.amountFocus.addListener(_updateAnyItemAmountFocused);
+    row.nameFocus.addListener(_updateAnyItemNameFocused);
+    _itemRows.value = [..._itemRows.value, row];
     if (requestFocus) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) row.nameFocus.requestFocus();
@@ -110,23 +123,43 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
     }
   }
 
+  void _updateAnyItemAmountFocused() {
+    _anyItemAmountFocused.value = _itemRows.value.any((row) => row.amountFocus.hasFocus);
+  }
+
+  void _updateAnyItemNameFocused() {
+    _anyItemNameFocused.value = _itemRows.value.any((row) => row.nameFocus.hasFocus);
+  }
+
+  void _onNextFromItemName() {
+    for (final row in _itemRows.value) {
+      if (row.nameFocus.hasFocus) {
+        row.amountFocus.requestFocus();
+        return;
+      }
+    }
+  }
+
   void _removeItemRow(int i) {
-    final row = _itemRows[i];
+    final row = _itemRows.value[i];
     row.name.removeListener(_onItemChanged);
     row.amount.removeListener(_onItemChanged);
+    row.amountFocus.removeListener(_updateAnyItemAmountFocused);
+    row.nameFocus.removeListener(_updateAnyItemNameFocused);
     row.dispose();
-    setState(() => _itemRows.removeAt(i));
+    final updated = [..._itemRows.value]..removeAt(i);
+    _itemRows.value = updated;
     _syncGroupValidity();
   }
 
   void _onItemChanged() {
     if (!mounted) return;
-    setState(() {});
+    _itemsTotal.value = _itemRows.value.fold(0, (acc, row) => acc + (double.tryParse(row.amount.text) ?? 0));
     _syncGroupValidity();
   }
 
   void _syncGroupValidity() {
-    final hasValid = _itemRows.any((row) =>
+    final hasValid = _itemRows.value.any((row) =>
         row.name.text.trim().isNotEmpty &&
         (double.tryParse(row.amount.text) ?? 0) > 0);
     ref.read(_formProvider.notifier).updateGroupValidity(hasValid);
@@ -138,22 +171,54 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
       _addItemRow();
       _addItemRow();
     } else {
-      for (final row in _itemRows) {
+      for (final row in _itemRows.value) {
         row.name.removeListener(_onItemChanged);
         row.amount.removeListener(_onItemChanged);
+        row.amountFocus.removeListener(_updateAnyItemAmountFocused);
+        row.nameFocus.removeListener(_updateAnyItemNameFocused);
         row.dispose();
       }
-      setState(() => _itemRows.clear());
+      _itemRows.value = [];
+      _anyItemAmountFocused.value = false;
+      _anyItemNameFocused.value = false;
       ref.read(_formProvider.notifier).updateGroupValidity(false);
     }
     ref.read(_formProvider.notifier).setGrouped(toGrouped);
+  }
+
+  void _onNextFromItemAmount() {
+    final rows = _itemRows.value;
+    for (int i = 0; i < rows.length; i++) {
+      if (rows[i].amountFocus.hasFocus) {
+        if (i == rows.length - 1) {
+          _titleFocus.requestFocus();
+        } else {
+          rows[i + 1].nameFocus.requestFocus();
+        }
+        return;
+      }
+    }
+    _titleFocus.requestFocus();
+  }
+
+  void _scrollToCategory() {
+    FocusScope.of(context).unfocus();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _categoryKey.currentContext == null) return;
+      Scrollable.ensureVisible(
+        _categoryKey.currentContext!,
+        alignment: 0.05,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    });
   }
 
   Future<void> _save() async {
     final formState = ref.read(_formProvider);
 
     if (formState.isGrouped) {
-      final validItems = _itemRows
+      final validItems = _itemRows.value
           .map((row) => ExpenseItem(
                 name: row.name.text.trim(),
                 amount: double.tryParse(row.amount.text) ?? 0,
@@ -302,11 +367,6 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
       ...AppConstants.categories,
       ...customCats.map((c) => c.toMap()),
     ];
-    final itemsTotal = _itemRows.fold<double>(
-      0,
-      (acc, row) => acc + (double.tryParse(row.amount.text) ?? 0),
-    );
-
     return Scaffold(
       backgroundColor: colors.bg,
       appBar: AppBar(
@@ -341,7 +401,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
           ),
         ],
       ),
-      body: ListView(
+      body: Column(
+        children: [
+          Expanded(child: ListView(
+        controller: _scrollCtrl,
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
         children: [
           // Mode toggle — only on new expense
@@ -359,12 +422,15 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
           if (!isGrouped)
             _FormCard(
               hasError: formState.amountError != null,
-              child: Column(
-                children: [
-                  Text('Amount', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: colors.textSec)),
-                  const SizedBox(height: 8),
-                  Center(
-                    child: Row(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _amountFocus.requestFocus(),
+                child: Column(
+                  children: [
+                    Text('Amount', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: colors.textSec)),
+                    const SizedBox(height: 8),
+                    Center(
+                      child: Row(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -413,44 +479,50 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
                 ],
               ),
             ),
+          ),
 
           // Items card (list mode)
           if (isGrouped)
-            _FormCard(
-              hasError: formState.itemsError != null,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      _FieldLabel('ITEMS', colors),
-                      const Spacer(),
-                      if (itemsTotal > 0) ...[
-                        Text(
-                          formatCompact(itemsTotal, currency),
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: kPrimary, letterSpacing: -0.3),
+            ValueListenableBuilder<List<_ItemRow>>(
+              valueListenable: _itemRows,
+              builder: (_, rows, __) => _FormCard(
+                hasError: formState.itemsError != null,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        _FieldLabel('ITEMS', colors),
+                        const Spacer(),
+                        ValueListenableBuilder<double>(
+                          valueListenable: _itemsTotal,
+                          builder: (_, total, __) => total > 0
+                              ? Row(children: [
+                                  Text(
+                                    formatCompact(total, currency),
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: kPrimary, letterSpacing: -0.3),
+                                  ),
+                                  const SizedBox(width: 10),
+                                ])
+                              : const SizedBox.shrink(),
                         ),
-                        const SizedBox(width: 10),
+                        GestureDetector(
+                          onTap: () => _addItemRow(requestFocus: true),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.add_circle_outline, size: 15, color: kPrimary),
+                              SizedBox(width: 4),
+                              Text('Add', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: kPrimary)),
+                            ],
+                          ),
+                        ),
                       ],
-                      GestureDetector(
-                        onTap: () => _addItemRow(requestFocus: true),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.add_circle_outline, size: 15, color: kPrimary),
-                            SizedBox(width: 4),
-                            Text('Add', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: kPrimary)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  ...List.generate(
-                    _itemRows.length,
-                    (i) => _buildItemRow(i, colors, currency),
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 12),
+                    ...List.generate(rows.length, (i) => _buildItemRow(i, rows, colors, currency)),
+                  ],
+                ),
               ),
             ),
           const SizedBox(height: 8),
@@ -467,7 +539,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
                   controller: _titleCtrl,
                   focusNode: _titleFocus,
                   textInputAction: TextInputAction.next,
-                  onSubmitted: (_) => _noteFocus.requestFocus(),
+                  onSubmitted: (_) => _scrollToCategory(),
                   onChanged: (v) => ref.read(_formProvider.notifier).updateTitle(v),
                   style: TextStyle(fontSize: 15, color: colors.textPrimary),
                   decoration: InputDecoration(
@@ -487,6 +559,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
 
           // Category selector
           _FormCard(
+            key: _categoryKey,
             hasError: formState.categoryError != null,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -565,7 +638,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _FieldLabel('NOTE (OPTIONAL)', colors),
+                _FieldLabel('NOTE', colors),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _noteCtrl,
@@ -625,13 +698,37 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
             ),
           ),
         ],
+      )),
+      ListenableBuilder(
+        listenable: Listenable.merge([_amountFocus, _anyItemAmountFocused, _anyItemNameFocused, _titleFocus, _noteFocus]),
+        builder: (context, __) {
+          final grouped = ref.read(_formProvider).isGrouped;
+          if (!grouped && _amountFocus.hasFocus) {
+            return NextFieldBar(colors: colors, onNext: () => _titleFocus.requestFocus());
+          }
+          if (grouped && _anyItemNameFocused.value) {
+            return NextFieldBar(colors: colors, onNext: _onNextFromItemName);
+          }
+          if (grouped && _anyItemAmountFocused.value) {
+            return NextFieldBar(colors: colors, onNext: _onNextFromItemAmount);
+          }
+          if (_titleFocus.hasFocus) {
+            return NextFieldBar(colors: colors, onNext: _scrollToCategory);
+          }
+          if (_noteFocus.hasFocus) {
+            return NextFieldBar(colors: colors, onNext: () => FocusScope.of(context).unfocus());
+          }
+          return const SizedBox.shrink();
+        },
+      ),
+    ],
       ),
     );
   }
 
-  Widget _buildItemRow(int i, AppColors colors, String currency) {
-    final row = _itemRows[i];
-    final isLast = i == _itemRows.length - 1;
+  Widget _buildItemRow(int i, List<_ItemRow> rows, AppColors colors, String currency) {
+    final row = rows[i];
+    final isLast = i == rows.length - 1;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Container(
@@ -692,7 +789,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
                       if (isLast) {
                         _titleFocus.requestFocus();
                       } else {
-                        _itemRows[i + 1].nameFocus.requestFocus();
+                        rows[i + 1].nameFocus.requestFocus();
                       }
                     },
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textPrimary),
@@ -713,7 +810,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
             const SizedBox(width: 4),
             SizedBox(
               width: 24,
-              child: _itemRows.length > 1
+              child: rows.length > 1
                   ? GestureDetector(
                       onTap: () => _removeItemRow(i),
                       child: Icon(Icons.close, size: 16, color: colors.textSec),
@@ -806,7 +903,7 @@ class _ModeBtn extends StatelessWidget {
 }
 
 class _FormCard extends StatelessWidget {
-  const _FormCard({required this.child, this.hasError = false});
+  const _FormCard({super.key, required this.child, this.hasError = false});
   final Widget child;
   final bool hasError;
 

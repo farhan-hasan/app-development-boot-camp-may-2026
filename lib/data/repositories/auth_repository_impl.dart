@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hisabi/domain/entities/app_user.dart';
 import 'package:hisabi/domain/repositories/auth_repository.dart';
@@ -50,9 +51,10 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<AppUser> signInWithGoogle() async {
+  Future<AppUser> signInWithGoogle({VoidCallback? onAccountSelected}) async {
     final googleUser = await _googleSignIn.signIn();
     if (googleUser == null) throw Exception('cancelled');
+    onAccountSelected?.call();
     final googleAuth = await googleUser.authentication;
     final credential = GoogleAuthProvider.credential(
       accessToken: googleAuth.accessToken,

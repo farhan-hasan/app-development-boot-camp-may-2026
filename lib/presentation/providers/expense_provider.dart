@@ -32,7 +32,6 @@ final searchQueryProvider = StateProvider<String>((_) => '');
 final searchModeProvider = StateProvider<bool>((_) => false);
 final showAllTransactionsProvider = StateProvider<bool>((_) => false);
 final categoryFilterProvider = StateProvider<String?>((_) => null);
-final onboardingPageProvider = StateProvider<int>((_) => 0);
 
 // ---------------------------------------------------------------------------
 // Custom categories
