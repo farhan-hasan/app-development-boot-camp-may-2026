@@ -412,7 +412,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
           children: [
             Expanded(child: ListView(
           controller: _scrollCtrl,
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
+          padding: EdgeInsets.fromLTRB(16, 8, 16, MediaQuery.of(context).padding.bottom + 16),
         children: [
           // Mode toggle — only on new expense
           if (!_isEdit) ...[

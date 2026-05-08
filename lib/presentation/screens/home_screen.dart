@@ -23,10 +23,12 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _searchCtrl = TextEditingController();
+  final _searchFocus = FocusNode();
 
   @override
   void dispose() {
     _searchCtrl.dispose();
+    _searchFocus.dispose();
     super.dispose();
   }
 
@@ -123,7 +125,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ref.read(categoryFilterProvider.notifier).state = null;
     });
 
-    return RefreshIndicator(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: RefreshIndicator(
       color: kPrimary,
       onRefresh: _refresh,
       child: CustomScrollView(
@@ -289,7 +293,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               }
               int expenseIndex = 0;
               return SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                padding: EdgeInsets.fromLTRB(16, 0, 16, MediaQuery.of(context).padding.bottom + MediaQuery.of(context).viewInsets.bottom + 16),
                 sliver: SliverList.builder(
                   itemCount: flat.length,
                   itemBuilder: (ctx, i) {
@@ -327,8 +331,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               });
                         }
                       },
-                      onTap: () {
-                        showExpenseDetailSheet(
+                      onTap: () async {
+                        _searchFocus.canRequestFocus = false;
+                        FocusScope.of(context).unfocus();
+                        await showExpenseDetailSheet(
                           context,
                           expense,
                           currency,
@@ -351,6 +357,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           },
                           extraCategories: extraCategories,
                         );
+                        if (mounted) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (mounted) _searchFocus.canRequestFocus = true;
+                          });
+                        }
                       },
                     );
                   },
@@ -378,6 +389,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -416,6 +428,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             child: TextField(
               controller: _searchCtrl,
+              focusNode: _searchFocus,
               autofocus: true,
               onChanged: (v) =>
                   ref.read(searchQueryProvider.notifier).state = v,
@@ -542,7 +555,7 @@ class _SkeletonList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+      padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).padding.bottom + MediaQuery.of(context).viewInsets.bottom + 16),
       sliver: SliverList.builder(
         itemCount: 6,
         itemBuilder: (_, __) => Container(

@@ -38,7 +38,7 @@ class SettingsScreen extends ConsumerWidget {
         title: Text('Settings', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: colors.textPrimary)),
       ),
       body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.fromLTRB(16, 0, 16, MediaQuery.of(context).padding.bottom + 16),
         children: [
           // Profile card
           Container(
@@ -183,7 +183,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ]),
 
-          const SizedBox(height: 40),
+          const SizedBox.shrink(),
         ],
       ),
     );
@@ -219,9 +219,9 @@ class SettingsScreen extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => Container(
+      builder: (ctx) => Container(
         decoration: BoxDecoration(color: colors.card, borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
+        padding: EdgeInsets.fromLTRB(24, 16, 24, MediaQuery.of(ctx).padding.bottom + 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

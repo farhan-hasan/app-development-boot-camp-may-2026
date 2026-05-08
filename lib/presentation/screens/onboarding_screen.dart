@@ -58,7 +58,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   flex: 35,
                   child: Container(
                     color: context.appColors.bg,
-                    padding: const EdgeInsets.fromLTRB(24, 28, 24, 40),
+                    padding: EdgeInsets.fromLTRB(24, 28, 24, MediaQuery.of(context).padding.bottom + 16),
                     child: Column(
                       children: [
                         Row(

@@ -8,7 +8,9 @@ class NextFieldBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SafeArea(
+      top: false,
+      child: Container(
       decoration: BoxDecoration(
         color: colors.card,
         border: Border(top: BorderSide(color: colors.border, width: 0.5)),
@@ -33,6 +35,7 @@ class NextFieldBar extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

@@ -6,14 +6,14 @@ import 'package:hisabi/utils/category_utils.dart';
 import 'package:hisabi/utils/date_formatter.dart';
 import 'package:intl/intl.dart';
 
-void showExpenseDetailSheet(
+Future<void> showExpenseDetailSheet(
   BuildContext context,
   Expense expense,
   String currency,
   VoidCallback onDelete, {
   List<Map<String, dynamic>> extraCategories = const [],
 }) {
-  showModalBottomSheet(
+  return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
@@ -63,7 +63,7 @@ class _ExpenseDetailSheetState extends State<_ExpenseDetailSheet> {
         color: colors.card,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 24),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom + 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
